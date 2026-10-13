@@ -4,7 +4,7 @@
 **Decisión:** React + Vite + TypeScript como una sola interfaz responsive/PWA, Vercel + Supabase + GitHub, sin Docker ni Tauri al iniciar.
 **Motivo:** velocidad de entrega, costo y menos superficies que mantener.
 **Consecuencia:** no prometer publicación en App Store/Play Store ni operación transaccional offline.
-**Estado:** implementado como base local en Sprint 0; Supabase, Vercel y GitHub remoto siguen propuestos/no configurados.
+**Estado:** base local implementada en Sprint 0; el usuario informó que Supabase base fue configurado y probado manualmente. Vercel y la verificación de GitHub remoto siguen pendientes.
 
 ## D002 — Identidad de jugador independiente de login
 **Decisión:** ficha de `player` sin obligación de Supabase Auth.
@@ -16,7 +16,7 @@
 **Decisión:** todas las actividades usan una sola fuente de ocupación de canchas; exclusión de intervalos en PostgreSQL.
 **Motivo:** evitar turnos duplicados, incluso bajo concurrencia.
 **Consecuencia:** clases y torneos futuros enlazan esta agenda, sin calendarios paralelos; slots contiguos permitidos.
-**Estado:** decisión técnica para Sprint 2 (sin implementar).
+**Estado:** migración local Sprint 2 implementada; aplicación y prueba remota pendientes.
 
 ## D004 — Separar reserva, uso y cargo/pago
 **Decisión:** no registrar deuda automática al crear reserva; monetización posterior e independiente.
@@ -40,4 +40,10 @@
 **Decisión:** el club inicial, las seis canchas y el primer `owner` se crean con un script SQL idempotente ejecutado desde un mecanismo administrativo de Supabase, tras crear manualmente el usuario Auth.
 **Motivo:** impedir que un visitante del frontend se autoasigne privilegios y conservar una trazabilidad simple de la configuración inicial.
 **Consecuencia:** la primera puesta en funcionamiento requiere acceso administrativo a Supabase; el frontend nunca usa `service_role` ni crea membresías.
-**Estado:** script y migración versionados; ejecución remota pendiente.
+**Estado:** script y migración versionados; el usuario informó que la configuración base fue ejecutada y verificada manualmente. La evidencia reproducible de RLS sigue pendiente.
+
+## D008 — Primera agenda operativa de reservas
+**Decisión:** usar `reservations` con nombre libre de quien reserva, estado `confirmed`/`cancelled`, instantes `timestamptz` y exclusión GiST por cancha para confirmadas. Owner, admin y staff tienen la misma capacidad operativa, sin eliminación física.
+**Motivo:** permitir una agenda rápida sin exigir una ficha ni una cuenta al jugador y conservar historial de cancelaciones, aun con operaciones simultáneas.
+**Consecuencia:** la agenda se presenta inicialmente de 07:00 a 23:00 con grilla de 30 minutos, solo como decisión de interfaz. Horarios del club, duraciones, bloqueos y reglas de cancelación continúan pendientes de validación.
+**Estado:** migración e interfaz locales versionadas; aplicación y prueba contra Supabase pendientes.

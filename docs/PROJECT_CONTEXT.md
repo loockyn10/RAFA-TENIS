@@ -12,4 +12,4 @@
 
 **Invariantes:** ficha persona distinta de identidad Auth; una sola agenda de ocupación por cancha; reserva ≠ tiempo jugado ≠ cobro; servidor/DB autoriza y evita solapes.
 
-**Estado:** existe un bootstrap local de React/Vite/TypeScript y PWA en `apps/web`, sin backend ni operación de club. Reglas operativas en `VALIDACION_RAFA.md` aún sin confirmar.
+**Estado:** existen Auth administrativo, clubes, seis canchas y su configuración en el repositorio; el usuario informó haberlos verificado manualmente contra Supabase. El Sprint 02 agrega localmente la agenda diaria y una migración de reservas pendiente de aplicar. Reglas operativas definitivas en `VALIDACION_RAFA.md` aún sin confirmar.

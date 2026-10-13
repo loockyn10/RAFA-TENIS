@@ -6,7 +6,7 @@ begin;
 
 do $$
 declare
-  v_owner_user_id uuid := 'REPLACE_WITH_AUTH_USER_UUID';
+  v_owner_user_id uuid := 'd07a6707-495b-445b-a763-a900166f6992';
   v_club_id uuid;
   v_existing_court_count integer;
 begin

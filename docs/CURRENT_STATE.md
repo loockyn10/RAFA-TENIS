@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-13 (después de Sprint 1)
+# CURRENT_STATE.md — 2026-10-13 (después de Sprint 2, implementación local)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -9,25 +9,26 @@
 - Administración responsive de nombre, superficie, estado y orden de canchas para roles `owner` y `admin`; `staff` solo consulta.
 - Migración `supabase/migrations/20261013000000_club_access_and_courts.sql` con `clubs`, `club_staff`, `courts`, trigger de actualización, permisos y RLS.
 - Bootstrap administrativo idempotente en `supabase/bootstrap/rafa-tenis.sql`, y guion manual de verificaciones RLS en `supabase/verification/rls-checks.sql`.
+- Migración `supabase/migrations/20261013010000_reservations.sql`: reservas, FK cancha/club, índice, exclusión GiST de solapes, trigger de cancha activa, permisos restringidos y RLS por membresía.
+- Sección administrativa **Reservas**: agenda diaria, navegación por fecha, selección de fecha, seis columnas en escritorio y selector de cancha en celular; alta, edición y cancelación lógica de reservas.
+- Utilidades y pruebas para intervalos, conversión `America/Argentina/Buenos_Aires`, orden, bloques visuales y error de solape de PostgreSQL.
 
 ## Verificado localmente
-- `pnpm typecheck` finaliza correctamente.
-- `pnpm lint` finaliza correctamente.
-- `pnpm test` finaliza correctamente: 7 pruebas. Cubren configuración ausente, sesión ausente, sesión sin membresía, lectura frente a administración, error de persistencia y orden de seis canchas.
-- No se ejecutaron pruebas de RLS contra PostgreSQL/Supabase porque no hay un proyecto ni usuarios de prueba configurados.
+- El usuario informó haber verificado manualmente: inicio de sesión, acceso owner, seis canchas, edición y persistencia tras recargar contra el proyecto Supabase.
+- En este Sprint 2 finalizaron correctamente `pnpm typecheck`, `pnpm lint`, `pnpm test` (14 pruebas) y `pnpm build`.
+- No se ejecutaron pruebas de RLS, exclusión GiST o concurrencia contra PostgreSQL/Supabase durante este sprint.
 
 ## Migraciones e infraestructura remota
 - Migraciones versionadas en repositorio: **sí**.
-- Migraciones aplicadas en remoto: **no verificadas / no aplicadas por este sprint**.
-- Bootstrap ejecutado en remoto: **no**.
-- Variables `.env.local` configuradas: **no verificadas**.
-- Funcionalidad de autenticación, persistencia y edición contra Supabase real: **pendiente de verificación manual**.
+- Sprint 1 aplicado y funcionalidad básica: **verificado manualmente por el usuario, no revalidado por este sprint**.
+- Migración de reservas Sprint 2 aplicada en remoto: **no; pendiente de aplicación explícita**.
+- Exclusión temporal, RLS de reservas y concurrencia contra Supabase real: **pendientes de verificación**.
 
 ## Contradicción detectada
 El documento previo indicaba que no se había inicializado ni verificado un repositorio Git/GitHub remoto, pero la inspección de este sprint encontró `main...origin/main`. No se modificó esa configuración ni se hizo commit o push.
 
 ## No implementado
-Calendario, reservas, jugadores, cuotas, cobros, profesores, clases, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, tests RLS remotos y funcionalidad offline transaccional.
+Jugadores, cuotas, cobros, profesores, clases, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, pruebas RLS remotas y funcionalidad offline transaccional. Los bloqueos operativos (mantenimiento, lluvia, etc.) no forman parte de esta primera entidad de reservas.
 
 ## Próximo trabajo
-Configurar y verificar Supabase de forma manual antes de comenzar Sprint 2. Una vez hecho, ejecutar el bootstrap y los controles RLS sin declarar resultados hasta contar con evidencia de esa base.
+Aplicar la migración Sprint 2 en Supabase y ejecutar los controles SQL de reservas con usuarios de dos clubes. Luego validar manualmente creación, edición, cancelación y conflicto de solape desde PC y celular.

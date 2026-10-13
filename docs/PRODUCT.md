@@ -50,4 +50,6 @@ Pagos automáticos/Mercado Pago, facturación, POS, stock, torneos completos, ra
 Rafa identifica en segundos las seis canchas, reserva para alguien que contactó fuera de la app, edita/cancela fácilmente y no puede confirmar dos ocupaciones simultáneas de una misma cancha desde distintos operadores.
 
 ## Estado del producto técnico
-El Sprint 1 incorpora acceso administrativo por email/contraseña y la consulta/administración de canchas según rol. No habilita registro público, jugadores, reservas ni ninguna regla comercial. Las seis canchas iniciales se cargan únicamente mediante bootstrap administrativo seguro, una vez configurado Supabase.
+El Sprint 1 incorpora acceso administrativo por email/contraseña y la consulta/administración de canchas según rol. El usuario informó haber verificado manualmente el acceso owner, las seis canchas, su edición y persistencia.
+
+El Sprint 2 agrega en el repositorio una agenda diaria y altas, ediciones y cancelaciones lógicas de reservas con nombre libre. La migración de reservas está versionada pero todavía debe aplicarse y verificarse contra Supabase. La vista usa transitoriamente 07:00–23:00 e intervalos visuales de 30 minutos; no constituyen una regla permanente de la base de datos. No se habilitan registro público, jugadores, cobros ni reglas comerciales.

@@ -1,7 +1,7 @@
 # ARCHITECTURE.md
 
 ## Estado de las decisiones
-**Implementado localmente:** monorepo mínimo pnpm `apps/web`; React + Vite + TypeScript strict; responsive PWA; cliente Supabase, Auth por email/contraseña, migración de clubes/personal/canchas y RLS versionada; tests Vitest. **No verificado en remoto:** proyecto Supabase, aplicación de migraciones, RLS real, Vercel y GitHub privado. Sin Docker ni Tauri.
+**Implementado localmente:** monorepo mínimo pnpm `apps/web`; React + Vite + TypeScript strict; responsive PWA; cliente Supabase, Auth por email/contraseña, migraciones de clubes/personal/canchas y reservas, RLS versionada y tests Vitest. **Reportado como verificado manualmente por el usuario:** proyecto Supabase, acceso owner, seis canchas, edición y persistencia. **Aún no verificado en remoto:** migración y RLS de reservas, exclusión temporal/concurrencia, Vercel y GitHub privado. Sin Docker ni Tauri.
 
 ## División técnica
 - **Frontend/PWA:** vistas responsive para operatoria y, después, jugador; estado local solo para UI; errores de red visibles.
@@ -10,12 +10,12 @@
 - **RLS:** controles por club y rol, con servidor como autoridad; jamás `service_role` en cliente.
 - **Vercel:** despliegue futuro; no afirmar producción a partir de un build exitoso.
 
-## Datos: propuesta conceptual, no tablas existentes
+## Datos: implementado / evolución prevista
 - `clubs(id, name, timezone, ...)`
 - `club_staff(club_id, auth_user_id, role, ...)`
 - `courts(id, club_id, name, surface, active, display_order, ...)`
 - `players(id, club_id, name, optional_contact, optional_auth_user_id, ...)`
-- `court_reservations(id, club_id, court_id, player_id?, guest_name?, starts_at, ends_at, type, status, notes?, created_by, ...)`
+- `reservations(id, club_id, court_id, customer_name, starts_at, ends_at, status, notes?, created_by, ...)` (migración Sprint 02 versionada, pendiente de aplicación remota)
 
 Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del **mismo club** (integridad de datos, no solo validación de pantalla). Un jugador puede no tener login. Tipos futuros: play, lesson, tournament, maintenance, event; no construir módulos futuros de antemano.
 
@@ -44,6 +44,13 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - Si una persona pertenece a más de un club, el frontend obliga a elegir el contexto y cada consulta de canchas filtra por el club seleccionado. Esto complementa, pero no sustituye, RLS.
 - La caché PWA solo precachea los artefactos estáticos del build; no hay reglas de runtime que cacheen respuestas privadas de Supabase.
 
+### Sprint 2 — reservas
+- `reservations` referencia a `clubs` y a la clave compuesta `(club_id, court_id)` de `courts`, de modo que la correspondencia cancha/club se valida en PostgreSQL.
+- Un trigger permite crear o reactivar una reserva confirmada solo en una cancha activa. La edición de una reserva ya confirmada y la cancelación no requieren reactivar una cancha que se haya deshabilitado después.
+- El rango `tstzrange(starts_at, ends_at, '[)')` y una exclusión GiST condicionada a `status = 'confirmed'` impiden solapes concurrentes y permiten turnos contiguos. Requiere la extensión `btree_gist`.
+- RLS y privilegios de columna permiten a cualquier miembro `owner`, `admin` o `staff` consultar, crear y actualizar reservas de su club, pero no borrar físicamente ni alterar su club, autor o metadatos de auditoría.
+- La aplicación convierte la fecha/hora de la agenda desde `clubs.timezone` (inicialmente `America/Argentina/Buenos_Aires`) a instantes `timestamptz`; no utiliza la zona horaria del dispositivo para persistir.
+
 ## Operación e infraestructura
 - `.env.example` con nombres de variables públicas sin credenciales reales; `.env.local` ignorado.
 - Ninguna migración creada equivale a aplicada; distinguir verificado local/remoto/producción.
@@ -51,4 +58,4 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - No prometer offline transaccional; PWA instalable ≠ base offline sincronizada.
 
 ## Operación de configuración
-Las variables públicas se leen desde `.env.local` en la raíz. La creación del primer usuario Auth y la ejecución de `supabase/bootstrap/rafa-tenis.sql` son operaciones administrativas manuales: no existe autoprovisión de administradores en el frontend. La migración existe en el repositorio, pero no fue aplicada ni verificada contra una base remota durante este sprint.
+Las variables públicas se leen desde `.env.local` en la raíz. La creación del primer usuario Auth y la ejecución de `supabase/bootstrap/rafa-tenis.sql` son operaciones administrativas manuales: no existe autoprovisión de administradores en el frontend. El usuario informó haber verificado esa configuración base; la migración de reservas no fue aplicada ni verificada contra una base remota durante este sprint.

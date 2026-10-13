@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useAuth } from '../../auth/AuthProvider'
 import { CourtList, type CourtPatch } from '../courts/CourtList'
+import { ReservationCalendar } from '../reservations/ReservationCalendar'
 import type { Club, ClubMembership, ClubRole, Court } from '../../types/domain'
 
 type MembershipRow = { club_id: string; role: ClubRole }
@@ -15,6 +16,7 @@ export function AdminPanel({ user }: { user: User }) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [error, setError] = useState<string | null>(null)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [section, setSection] = useState<'home' | 'reservations' | 'courts'>('home')
 
   useEffect(() => {
     let cancelled = false
@@ -122,7 +124,14 @@ export function AdminPanel({ user }: { user: User }) {
         {clubs.length > 1 && <label className="club-selector">Club<select value={selectedClubId ?? ''} onChange={(event) => setSelectedClubId(event.target.value)}>{clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></label>}
         {selectedClub && <>
           <section className="stats-grid" aria-label="Resumen de canchas"><div><span>Total de canchas</span><strong>{courts.length}</strong></div><div><span>Canchas activas</span><strong>{activeCourts}</strong></div><div><span>Tu permiso</span><strong>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Lectura'}</strong></div></section>
-          <CourtList courts={courts} canManage={canManage} onSave={saveCourt} />
+          <nav className="admin-nav" aria-label="Secciones administrativas">
+            <button className={section === 'home' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('home')}>Inicio</button>
+            <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('reservations')}>Reservas</button>
+            <button className={section === 'courts' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('courts')}>Canchas</button>
+          </nav>
+          {section === 'home' && <section className="home-panel"><p className="eyebrow">Resumen</p><h2>Elegí qué querés gestionar</h2><p>Consultá y cargá turnos desde <strong>Reservas</strong>, o actualizá las canchas del club desde <strong>Canchas</strong>.</p></section>}
+          {section === 'reservations' && <ReservationCalendar client={client} club={selectedClub} courts={courts} />}
+          {section === 'courts' && <CourtList courts={courts} canManage={canManage} onSave={saveCourt} />}
         </>}
       </>}
     </div>

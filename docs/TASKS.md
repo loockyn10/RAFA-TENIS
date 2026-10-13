@@ -6,9 +6,10 @@
 - [ ] Revisar con Rafa las **10 preguntas críticas** en `VALIDACION_RAFA.md` antes de automatizar restricciones del calendario.
 - [ ] Acordar con Rafa titularidad de cuentas, costos de hosting/dominio y alcance del soporte.
 - [ ] Configurar un proyecto Supabase en región adecuada y definir quién tendrá acceso administrativo.
-- [ ] Aplicar la migración Sprint 1, crear el primer usuario Auth y ejecutar el bootstrap seguro de Rafa Tenis.
-- [ ] Ejecutar `supabase/verification/rls-checks.sql` con usuarios reales de prueba y registrar los resultados.
-- [ ] Antes de Sprint 2: revisar modelado de reserva/ocupación, RLS, aislamiento de club y exclusión de intervalos; verificar tests con BD real.
+- [x] Sprint 1: el usuario verificó manualmente acceso owner, seis canchas, edición y persistencia. Falta evidencia reproducible de RLS con múltiples usuarios.
+- [ ] Aplicar `20261013010000_reservations.sql` y verificar que `btree_gist` y la exclusión GiST se creen correctamente.
+- [ ] Ejecutar `supabase/verification/rls-checks.sql` con usuarios reales de dos clubes y registrar RLS, solapes, cancelación, contigüidad y concurrencia.
+- [ ] Validar manualmente el calendario Sprint 2 contra Supabase desde escritorio y celular.
 
 ## P1/P2 (no tomar ahora)
 - [ ] Acordar reglas de cuotas, profesores, torneos y cantina cuando llegue su sprint.
@@ -18,4 +19,5 @@
 - Cambiar el alcance al desarrollar (añadir POS, cobros, torneos prematuramente).
 - Tomar precios/horarios de ejemplo como confirmados.
 - Migración versionada sin aplicar, o aplicada manualmente sin reflejar estado documental.
+- Declarar verificada la exclusión temporal o RLS de reservas sin probarlas en PostgreSQL/Supabase real.
 - Confundir PWA instalable con POS offline-first.

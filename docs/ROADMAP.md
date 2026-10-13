@@ -4,7 +4,7 @@
 |---|---|---|---|
 | P0 | **0** | Bootstrap repo, PWA shell, tooling, docs; local build/test | Ninguna cuenta cloud necesaria |
 | P0 | **1** | Auth staff/admin, esquema `clubs`/`club_staff`/`courts`, RLS, carga de seis canchas | Política segura de primer admin y Supabase real |
-| P0 | **2** | Agenda diaria + alta manual de reservas, invitado/ficha, DB antisolape | Reglas mínimas de calendario validadas; Sprint 1 |
+| P0 | **2** | Agenda diaria + alta/edición/cancelación manual de reservas y DB antisolape | Implementado localmente; falta aplicar migración y validarlo en Supabase |
 | P0 | **3** | Editar/cancelar, bloquear cancha, manejo de conflictos y pruebas multicliente | Sprint 2 |
 | P0 | **4** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–3 |
 | P1 | **5** | Personas, socios, cuotas y pagos manuales | Reglas de membresía verificadas |
