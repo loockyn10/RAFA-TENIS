@@ -5,6 +5,7 @@ import { CourtList, type CourtPatch } from '../courts/CourtList'
 import { ReservationCalendar } from '../reservations/ReservationCalendar'
 import { PeoplePanel } from '../people/PeoplePanel'
 import { FinancePanel } from '../fees/FinancePanel'
+import { SchoolPanel } from '../school/SchoolPanel'
 import type { Club, ClubMembership, ClubRole, Court } from '../../types/domain'
 
 type MembershipRow = { club_id: string; role: ClubRole }
@@ -18,7 +19,9 @@ export function AdminPanel({ user }: { user: User }) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [error, setError] = useState<string | null>(null)
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const [section, setSection] = useState<'home' | 'reservations' | 'people' | 'fees' | 'courts'>('home')
+  const [section, setSection] = useState<'home' | 'reservations' | 'school' | 'people' | 'fees' | 'courts'>('home')
+  const [requestedLessonId, setRequestedLessonId] = useState<string | null>(null)
+  const [lessonCreation, setLessonCreation] = useState<{ courtId: string; date: string; startsAt: string } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -129,12 +132,14 @@ export function AdminPanel({ user }: { user: User }) {
           <nav className="admin-nav" aria-label="Secciones administrativas">
             <button className={section === 'home' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('home')}>Inicio</button>
             <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('reservations')}>Reservas</button>
+            <button className={section === 'school' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('school')}>Escuela de tenis</button>
             <button className={section === 'people' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('people')}>Jugadores</button>
             {canManage && <button className={section === 'fees' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('fees')}>Cuotas</button>}
             <button className={section === 'courts' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('courts')}>Canchas</button>
           </nav>
           {section === 'home' && <section className="home-panel"><p className="eyebrow">Resumen</p><h2>Elegí qué querés gestionar</h2><p>Consultá y cargá turnos desde <strong>Reservas</strong>, o actualizá las canchas del club desde <strong>Canchas</strong>.</p></section>}
-          {section === 'reservations' && <ReservationCalendar client={client} club={selectedClub} courts={courts} />}
+          {section === 'reservations' && <ReservationCalendar client={client} club={selectedClub} courts={courts} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); setSection('school') }} onCreateLesson={(request) => { setLessonCreation(request); setSection('school') }} />}
+          {section === 'school' && <SchoolPanel client={client} club={selectedClub} courts={courts} canManageCoaches={canManage} requestedLessonId={requestedLessonId} onRequestedLessonHandled={() => setRequestedLessonId(null)} requestedCreation={lessonCreation} onRequestedCreationHandled={() => setLessonCreation(null)} />}
           {section === 'people' && <PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} />}
           {section === 'fees' && <FinancePanel client={client} club={selectedClub} canManage={canManage} />}
           {section === 'courts' && <CourtList courts={courts} canManage={canManage} onSave={saveCourt} />}

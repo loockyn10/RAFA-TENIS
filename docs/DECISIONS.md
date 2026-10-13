@@ -65,3 +65,9 @@
 **Motivo:** evitar que modificar el importe mensual cambie historia, no inferir deuda desde reservas, y proteger cobros parciales/concurrentes.
 **Consecuencia:** no hay saldo mutable, pagos anticipados, suspensión por deuda ni eliminación física. Los montos se guardan como centavos enteros ARS; owner/admin es el único acceso financiero.
 **Estado:** migración e interfaz Sprint 5 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.
+
+## D012 — Clase como entidad vinculada a la agenda única
+**Decisión:** una clase es `tennis_lessons` y se vincula obligatoriamente a una ocupación `reservations` de tipo `lesson`; no duplica cancha ni horario. Los alumnos enlazan con `club_people` y el profesor con `club_coaches`.
+**Motivo:** distinguir el negocio de la escuela de una reserva común sin abrir una agenda paralela ni duplicar fichas personales.
+**Consecuencia:** las clases se crean, editan y cancelan mediante RPC atómicas; la exclusión GiST de agenda cubre sus canchas y el profesor se serializa por lock asesorado. Profesor no concede acceso administrativo.
+**Estado:** migración e interfaz Sprint 6 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.

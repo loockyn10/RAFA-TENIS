@@ -30,6 +30,10 @@ create table public.membership_dues (
 create index membership_dues_club_period_idx on public.membership_dues (club_id, period, due_date);
 create index membership_dues_membership_period_idx on public.membership_dues (membership_id, period desc);
 
+alter table public.membership_dues
+  add constraint membership_dues_club_id_id_unique
+  unique (club_id, id);
+
 create table public.membership_due_payments (
   id uuid primary key default gen_random_uuid(),
   club_id uuid not null references public.clubs(id) on delete restrict,

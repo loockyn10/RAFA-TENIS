@@ -8,9 +8,10 @@
 | P0 | **3** | Bloqueos, reservas semanales acotadas, conflictos y base de pruebas multicliente | Implementado localmente; requiere aplicar y verificar migraciones 2–3 |
 | P1 | **4** | Personas y socios | Implementado localmente; falta aplicar/verificar migración 4 |
 | P1 | **5** | Cuotas y pagos manuales | Implementado localmente; requiere aplicar/verificar migraciones 2–5 |
+| P1 | **6** | Profesores, alumnos y clases en agenda única | Implementado localmente; requiere aplicar/verificar migraciones 2–6 |
 | P0 | **Piloto** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–5 aplicados y verificados |
 | P1 | **7** | Portal del jugador / PWA autogestión | Política anticipación/cancelación/cupos |
-| P1 | **8** | Profesores, clases, agenda única | Reglas docentes |
+| P1 | **8** | Portal del profesor, si se acuerda | Política de acceso docente y privacidad |
 | P1 | **9** | Torneos, categorías, inscripciones, fixtures y resultados | Formatos deportivos acordados |
 | P2 | **10** | Eventos y noticias del club | Alcance eventos |
 | P2 | **11** | Cantina, ventas y cargos informales + caja básica | Política económica acordada |

@@ -20,7 +20,7 @@ export type Court = {
   display_order: number
 }
 
-export type OccupationType = 'reservation' | 'block'
+export type OccupationType = 'reservation' | 'block' | 'lesson'
 export type ReservationStatus = 'confirmed' | 'active' | 'cancelled'
 
 export type Reservation = {
@@ -124,4 +124,48 @@ export type BlockDraft = {
   endsAt: string
   reason: string
   notes: string
+}
+
+export type ClubCoach = {
+  id: string
+  club_id: string
+  person_id: string
+  active: boolean
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type TennisLesson = {
+  id: string
+  club_id: string
+  coach_id: string
+  reservation_id: string
+  lesson_type: 'individual' | 'group'
+  capacity: number
+  status: 'scheduled' | 'cancelled'
+  notes: string | null
+  recurrence_series_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type TennisLessonStudent = {
+  lesson_id: string
+  club_id: string
+  person_id: string
+}
+
+export type LessonDraft = {
+  coachId: string
+  courtId: string
+  date: string
+  startsAt: string
+  endsAt: string
+  lessonType: 'individual' | 'group'
+  capacity: number
+  studentIds: string[]
+  notes: string
+  recurrence: 'single' | 'weekly'
+  recurrenceUntil: string
 }

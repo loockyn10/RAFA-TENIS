@@ -1,7 +1,7 @@
 # ARCHITECTURE.md
 
 ## Estado de las decisiones
-**Implementado localmente:** monorepo mínimo pnpm `apps/web`; React + Vite + TypeScript strict; responsive PWA; cliente Supabase, Auth por email/contraseña, migraciones de clubes/personal/canchas y reservas, RLS versionada y tests Vitest. **Reportado como verificado manualmente por el usuario:** proyecto Supabase, acceso owner, seis canchas, edición y persistencia. **Aún no verificado en remoto:** migración y RLS de reservas, exclusión temporal/concurrencia, Vercel y GitHub privado. Sin Docker ni Tauri.
+**Implementado localmente:** monorepo mínimo pnpm `apps/web`; React + Vite + TypeScript strict; responsive PWA; cliente Supabase, Auth por email/contraseña, migraciones de clubes/personal/canchas, reservas, finanzas y escuela de tenis, RLS versionada y tests Vitest. **Reportado como verificado manualmente por el usuario:** proyecto Supabase, acceso owner, seis canchas, edición/persistencia y operación Sprint 5. **Aún no verificado reproduciblemente en remoto:** RLS exhaustivo, exclusión temporal/concurrencia, Sprint 6, Vercel y GitHub privado. Sin Docker ni Tauri.
 
 ## División técnica
 - **Frontend/PWA:** vistas responsive para operatoria y, después, jugador; estado local solo para UI; errores de red visibles.
@@ -67,6 +67,13 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - La configuración, emisión mensual, emisión individual, pagos y anulación se resuelven mediante RPC; las tablas no conceden insert/update/delete directos al cliente autenticado.
 - La interfaz usa ARS en centavos, conversión decimal validada y fecha local del club para mostrar condición vencida. “Vencida” es temporal y se muestra junto al estado parcial o pendiente cuando corresponde.
 
+### Sprint 6 — escuela de tenis
+- `club_coaches` complementa `club_people` por club; no equivale a `club_staff` y conserva perfiles inactivos e historial.
+- `tennis_lessons` conserva tipo, cupo, estado, profesor, alumnos y una FK compuesta hacia una fila `reservations` de tipo `lesson`. La fila de agenda contiene cancha e instantes, evitando una segunda agenda incompatible; solo los RPC del módulo pueden modificar una ocupación de clase.
+- La exclusión GiST existente incorpora `lesson`, por lo que reserva, bloqueo y clase compiten por la misma cancha. Un lock asesorado por profesor, más la comprobación en función SQL, evita clases superpuestas del mismo profesor incluso con solicitudes concurrentes.
+- `create_tennis_lesson`, `update_tennis_lesson`, `cancel_tennis_lesson` y `create_weekly_tennis_lesson_series` son `SECURITY DEFINER`, validan `auth.uid()`, pertenencia al club, profesor activo, alumnos del club, cupo y horario. La serie se inserta en una sola transacción y se limita a 12 ocurrencias.
+- Owner/admin gestionan perfiles de profesor; owner/admin/staff consultan la escuela y operan clases/alumnos. Las tablas de clases no conceden escritura directa al cliente; no se expone `service_role`.
+
 ## Operación e infraestructura
 - `.env.example` con nombres de variables públicas sin credenciales reales; `.env.local` ignorado.
 - Ninguna migración creada equivale a aplicada; distinguir verificado local/remoto/producción.
@@ -74,4 +81,4 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - No prometer offline transaccional; PWA instalable ≠ base offline sincronizada.
 
 ## Operación de configuración
-Las variables públicas se leen desde `.env.local` en la raíz. La creación del primer usuario Auth y la ejecución de `supabase/bootstrap/rafa-tenis.sql` son operaciones administrativas manuales: no existe autoprovisión de administradores en el frontend. El usuario informó haber verificado esa configuración base; la migración de reservas no fue aplicada ni verificada contra una base remota durante este sprint.
+Las variables públicas se leen desde `.env.local` en la raíz. La creación del primer usuario Auth y la ejecución de `supabase/bootstrap/rafa-tenis.sql` son operaciones administrativas manuales: no existe autoprovisión de administradores en el frontend. El usuario informó haber verificado esa configuración base y la operación de Sprint 5; sus verificaciones exhaustivas de RLS y concurrencia continúan pendientes.

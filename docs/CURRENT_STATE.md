@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-13 (después de Sprint 5, implementación local)
+# CURRENT_STATE.md — 2026-10-13 (después de Sprint 6, implementación local)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -20,24 +20,27 @@
 - Migración `supabase/migrations/20261013040000_membership_dues_and_payments.sql`: configuración ARS por club, cuotas mensuales inmutables por período, pagos manuales auditables y RLS financiero exclusivo owner/admin.
 - Sección administrativa **Cuotas**: configuración de importe/vencimiento, emisión mensual idempotente, cuota individual para socio activo, totales reales, búsqueda/filtros, detalle y registro de pagos.
 - Ficha de socio: estado de cuenta, saldo calculado, cuotas y pagos históricos; pagos anulables con motivo desde el detalle. Staff no ve datos financieros.
+- Migración `supabase/migrations/20261013050000_tennis_school.sql`: perfiles `club_coaches`, clases, alumnos y series de clases; los RPC crean, editan y cancelan clases de manera atómica junto con la ocupación de cancha.
+- Sección administrativa **Escuela de tenis**: alta/activación de profesores desde personas existentes, clases individuales/grupales sin alumnos obligatorios, cupo, alta rápida de alumno, edición/cancelación y recurrencia semanal de hasta 12 clases. El calendario distingue clases y permite abrir su detalle; la creación puede iniciarse desde el calendario.
 
 ## Verificado localmente
 - El usuario informó haber verificado manualmente: inicio de sesión, acceso owner, seis canchas, edición y persistencia tras recargar contra el proyecto Supabase.
-- En Sprint 5 finalizaron correctamente `pnpm typecheck` y `pnpm test` (23 pruebas). Lint y build quedan registrados según la ejecución real de esta entrega.
+- En Sprint 6 finalizaron correctamente `pnpm typecheck`, `pnpm lint`, `pnpm test` (25 pruebas) y `pnpm build`. El build emitió la advertencia de bundle JavaScript superior a 500 kB; no se alteró el alcance para resolverla.
 - Las verificaciones locales no equivalen a pruebas remotas de PostgreSQL/RLS.
 - No se ejecutaron pruebas de RLS, exclusión GiST, atomicidad o concurrencia contra PostgreSQL/Supabase durante este sprint.
 
 ## Migraciones e infraestructura remota
 - Migraciones versionadas en repositorio: **sí**.
 - Sprint 1 aplicado y funcionalidad básica: **verificado manualmente por el usuario, no revalidado por este sprint**.
-- Migraciones Sprint 2/Sprint 3/Sprint 4/Sprint 5 aplicadas en remoto: **no confirmadas; requieren aplicación explícita y ordenada**.
-- Exclusión temporal entre reservas/bloqueos, RLS, función de series, personas/socios y las garantías financieras contra Supabase real: **pendientes de verificación**.
+- Sprint 2/Sprint 3/Sprint 4/Sprint 5: **el usuario informó que Sprint 5 funciona contra Supabase; por sus dependencias se infiere que fueron aplicadas**. No se revalidaron sus versiones, RLS exhaustivo ni concurrencia en este sprint.
+- Sprint 6: **migración versionada localmente, no aplicada remotamente**.
+- Exclusión temporal entre reservas/bloqueos/clases, RLS, funciones de series, personas/socios y garantías financieras contra Supabase real: **pendientes de verificación reproducible**.
 
 ## Contradicción detectada
-La arquitectura previa proyectaba una entidad `players`, pero las migraciones existentes no la creaban. Sprint 4 crea `club_people` como entidad real para evitar confundir una proyección documental con un esquema aplicado. No se modificó Git ni se hizo commit o push.
+La arquitectura previa proyectaba una entidad `players`, pero las migraciones existentes no la creaban. Sprint 4 crea `club_people` como entidad real para evitar confundir una proyección documental con un esquema aplicado. No se hizo commit ni push.
 
 ## No implementado
-No hay edición masiva de series, recurrencias infinitas, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, caja, profesores, clases, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
+No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, caja, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
 ## Próximo trabajo
-Confirmar el estado real de las migraciones Sprint 2–4, aplicar 2–5 en orden si corresponde, y ejecutar los guiones SQL con usuarios de dos clubes. Luego validar cuotas, pagos parciales/anulaciones y estado de cuenta desde PC y celular.
+Confirmar en Supabase el historial de Sprint 2–5, aplicar Sprint 6 solo después de esa comprobación, y ejecutar los guiones SQL con usuarios de dos clubes. Luego validar agenda, escuela, cuotas y pagos desde PC y celular.
