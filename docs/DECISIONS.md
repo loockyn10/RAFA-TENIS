@@ -35,3 +35,9 @@
 **Motivo:** continuidad entre Codex/Claude sin chats gigantes.
 **Consecuencia:** código actual indica implementación, docs registran intención, discrepancias se reportan.
 **Estado:** decisión de proceso.
+
+## D007 — Bootstrap administrativo explícito
+**Decisión:** el club inicial, las seis canchas y el primer `owner` se crean con un script SQL idempotente ejecutado desde un mecanismo administrativo de Supabase, tras crear manualmente el usuario Auth.
+**Motivo:** impedir que un visitante del frontend se autoasigne privilegios y conservar una trazabilidad simple de la configuración inicial.
+**Consecuencia:** la primera puesta en funcionamiento requiere acceso administrativo a Supabase; el frontend nunca usa `service_role` ni crea membresías.
+**Estado:** script y migración versionados; ejecución remota pendiente.

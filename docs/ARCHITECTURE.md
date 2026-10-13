@@ -1,7 +1,7 @@
 # ARCHITECTURE.md
 
 ## Estado de las decisiones
-**PROPUESTO (no implementado/verificado):** monorepo mínimo pnpm `apps/web`; React + Vite + TypeScript strict; responsive PWA; Supabase PostgreSQL + Auth + RLS; Vercel; tests Vitest + verificaciones de integración. GitHub privado. Sin Docker ni Tauri.
+**Implementado localmente:** monorepo mínimo pnpm `apps/web`; React + Vite + TypeScript strict; responsive PWA; cliente Supabase, Auth por email/contraseña, migración de clubes/personal/canchas y RLS versionada; tests Vitest. **No verificado en remoto:** proyecto Supabase, aplicación de migraciones, RLS real, Vercel y GitHub privado. Sin Docker ni Tauri.
 
 ## División técnica
 - **Frontend/PWA:** vistas responsive para operatoria y, después, jugador; estado local solo para UI; errores de red visibles.
@@ -37,11 +37,18 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - No filtrar teléfonos, notas, cuotas ni consumos a vistas públicas de torneos.
 - Validación frontend mejora UX, **no reemplaza** constraints ni autorización backend.
 
+### Sprint 1 — acceso y canchas
+- `clubs`, `club_staff` y `courts` están definidos en una migración versionada. Las membresías se identifican por `(club_id, auth_user_id)` y roles `owner`, `admin`, `staff`.
+- RLS permite al usuario autenticado leer solo sus propias membresías, sus clubes y sus canchas. Solo `owner` y `admin` pueden actualizar los campos configurables de una cancha. No hay políticas de inserción, baja ni modificación de membresías desde el cliente.
+- Las funciones RLS `SECURITY DEFINER` están en el esquema no expuesto `private`, con `search_path` fijo y permisos de ejecución limitados a `authenticated`.
+- Si una persona pertenece a más de un club, el frontend obliga a elegir el contexto y cada consulta de canchas filtra por el club seleccionado. Esto complementa, pero no sustituye, RLS.
+- La caché PWA solo precachea los artefactos estáticos del build; no hay reglas de runtime que cacheen respuestas privadas de Supabase.
+
 ## Operación e infraestructura
 - `.env.example` con nombres de variables públicas sin credenciales reales; `.env.local` ignorado.
 - Ninguna migración creada equivale a aplicada; distinguir verificado local/remoto/producción.
 - Políticas de respaldo y titularidad/costos de cuentas: pendiente de conversar.
 - No prometer offline transaccional; PWA instalable ≠ base offline sincronizada.
 
-## Sprint 0 — alcance técnico acotado
-Preparar repo local runnable con React/Vite/TS/PWA base, tooling, README y docs. **No** Supabase activo, schema/migraciones, Auth real ni calendario operativo en Sprint 0. No deploy ni secretos sin autorización.
+## Operación de configuración
+Las variables públicas se leen desde `.env.local` en la raíz. La creación del primer usuario Auth y la ejecución de `supabase/bootstrap/rafa-tenis.sql` son operaciones administrativas manuales: no existe autoprovisión de administradores en el frontend. La migración existe en el repositorio, pero no fue aplicada ni verificada contra una base remota durante este sprint.

@@ -1,34 +1,33 @@
-# CURRENT_STATE.md — 2026-10-13 (después de Sprint 0)
+# CURRENT_STATE.md — 2026-10-13 (después de Sprint 1)
 
 ## Implementado en el repositorio
-- Workspace pnpm mínimo con `apps/web`, React, Vite y TypeScript estricto.
-- Shell responsive de identidad provisoria que comunica: “Prototipo en desarrollo: reservas todavía no disponibles.” No presenta acciones operativas.
-- PWA base: manifest, icono SVG, metadatos y service worker generado en build. No hay sincronización offline ni acceso a datos privados.
-- Scripts reproducibles de desarrollo, typecheck, lint, test y build; prueba mínima de la comunicación de estado.
-- `.gitignore`, `.env.example` sin valores y README de instalación local.
+- Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
+- Cliente de Supabase configurado exclusivamente con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`. Cuando faltan, la app muestra una pantalla clara de configuración pendiente.
+- Inicio/cierre/restauración de sesión por email y contraseña. No hay registro público de administradores.
+- Panel administrativo protegido: sin sesión muestra login; una sesión sin membresía muestra “No tenés acceso administrativo a ningún club.”
+- Consulta de clubes y canchas aislada por club. Usuarios con varios clubes eligen un contexto explícito.
+- Administración responsive de nombre, superficie, estado y orden de canchas para roles `owner` y `admin`; `staff` solo consulta.
+- Migración `supabase/migrations/20261013000000_club_access_and_courts.sql` con `clubs`, `club_staff`, `courts`, trigger de actualización, permisos y RLS.
+- Bootstrap administrativo idempotente en `supabase/bootstrap/rafa-tenis.sql`, y guion manual de verificaciones RLS en `supabase/verification/rls-checks.sql`.
 
 ## Verificado localmente
 - `pnpm typecheck` finaliza correctamente.
 - `pnpm lint` finaliza correctamente.
-- `pnpm test` finaliza correctamente (1 prueba).
-- `pnpm build` finaliza correctamente y genera `manifest.webmanifest`, `sw.js` y los artefactos estáticos en `apps/web/dist`.
-- `pnpm dev -- --host 127.0.0.1` inicia Vite localmente; no se realizó navegación ni prueba visual automatizada.
+- `pnpm test` finaliza correctamente: 7 pruebas. Cubren configuración ausente, sesión ausente, sesión sin membresía, lectura frente a administración, error de persistencia y orden de seis canchas.
+- No se ejecutaron pruebas de RLS contra PostgreSQL/Supabase porque no hay un proyecto ni usuarios de prueba configurados.
+
+## Migraciones e infraestructura remota
+- Migraciones versionadas en repositorio: **sí**.
+- Migraciones aplicadas en remoto: **no verificadas / no aplicadas por este sprint**.
+- Bootstrap ejecutado en remoto: **no**.
+- Variables `.env.local` configuradas: **no verificadas**.
+- Funcionalidad de autenticación, persistencia y edición contra Supabase real: **pendiente de verificación manual**.
+
+## Contradicción detectada
+El documento previo indicaba que no se había inicializado ni verificado un repositorio Git/GitHub remoto, pero la inspección de este sprint encontró `main...origin/main`. No se modificó esa configuración ni se hizo commit o push.
 
 ## No implementado
-- Supabase, autenticación, schema, migraciones, RLS, seed, calendario, reservas, pagos, gestión de personas y despliegue.
-- No se inicializó ni verificó un repositorio Git/GitHub remoto desde este paquete.
-
-## Requiere verificación manual
-- Instalación PWA en navegador compatible, comportamiento del service worker y visualización en teléfono físico.
-- Existencia/configuración de cuenta Supabase, proyecto Vercel, repo privado GitHub y nombres/horarios reales de canchas.
-
-## Remoto / producción
-- Migraciones versionadas: **no incluidas** en este paquete.
-- Migraciones aplicadas en remoto: **ninguna verificada**.
-- Configuración de variables en remoto: **no verificada**.
-- Aplicación en producción: **no verificada**.
+Calendario, reservas, jugadores, cuotas, cobros, profesores, clases, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, tests RLS remotos y funcionalidad offline transaccional.
 
 ## Próximo trabajo
-**Sprint 1 — autenticación administrativa y configuración inicial de las seis canchas**, después de definir un procedimiento seguro de primer admin y crear Supabase en una región adecuada. No iniciar sin esas decisiones.
-
-El agente debe **actualizar este documento según evidencias del repositorio** después del sprint, sin convertir aspiraciones en funcionalidades implementadas.
+Configurar y verificar Supabase de forma manual antes de comenzar Sprint 2. Una vez hecho, ejecutar el bootstrap y los controles RLS sin declarar resultados hasta contar con evidencia de esa base.

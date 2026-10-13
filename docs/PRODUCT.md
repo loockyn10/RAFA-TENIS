@@ -49,5 +49,5 @@ Pagos automáticos/Mercado Pago, facturación, POS, stock, torneos completos, ra
 ## Criterio de éxito inicial
 Rafa identifica en segundos las seis canchas, reserva para alguien que contactó fuera de la app, edita/cancela fácilmente y no puede confirmar dos ocupaciones simultáneas de una misma cancha desde distintos operadores.
 
-## Estado del prototipo técnico
-La pantalla inicial solo comunica que el producto está en desarrollo y que las reservas todavía no están disponibles. No representa una agenda, un acceso ni una operación funcional.
+## Estado del producto técnico
+El Sprint 1 incorpora acceso administrativo por email/contraseña y la consulta/administración de canchas según rol. No habilita registro público, jugadores, reservas ni ninguna regla comercial. Las seis canchas iniciales se cargan únicamente mediante bootstrap administrativo seguro, una vez configurado Supabase.

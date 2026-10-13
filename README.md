@@ -1,6 +1,6 @@
 # Rafa Tenis
 
-Base técnica de una futura PWA para la gestión operativa de Rafa Tenis. Este repositorio es un prototipo en desarrollo: no contiene autenticación, conexión a Supabase, calendario ni reservas operativas.
+PWA de administración inicial para Rafa Tenis. Incluye acceso administrativo con Supabase y configuración de canchas; no incluye calendario ni reservas.
 
 ## Requisitos
 
@@ -29,9 +29,18 @@ pnpm build
 
 Los scripts se ejecutan en `apps/web` mediante el workspace. `pnpm build` genera los artefactos locales en `apps/web/dist/`; no implica un despliegue en Vercel.
 
-## Configuración futura
+## Configuración de Supabase
 
-Copiá `.env.example` a `.env.local` solo cuando un sprint posterior configure Supabase. Las variables listadas son públicas para el cliente; nunca incluir claves de servicio ni secretos en ellas. No hay infraestructura remota configurada por este repositorio.
+1. Creá un proyecto Supabase y habilitá Email/Password en Authentication.
+2. Copiá `.env.example` como `.env.local` en la raíz del repositorio.
+3. En el panel de Supabase, copiá la URL del proyecto y su **Publishable key** en `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`.
+4. Aplicá `supabase/migrations/20261013000000_club_access_and_courts.sql` desde un mecanismo administrativo seguro (por ejemplo, SQL Editor). La migración no se aplica automáticamente desde el frontend.
+5. Creá manualmente el primer usuario en Authentication > Users. Copiá su UUID real, reemplazá `REPLACE_WITH_AUTH_USER_UUID` en `supabase/bootstrap/rafa-tenis.sql` y ejecutalo desde SQL Editor.
+6. Iniciá sesión con ese email y contraseña. Deben verse las seis canchas de Rafa Tenis.
+
+`apps/web/vite.config.ts` carga las variables desde la raíz del repositorio. Estas dos variables son públicas para el cliente: nunca agregues `service_role`, contraseñas ni otros secretos al archivo.
+
+El bootstrap es idempotente para un club vacío: crea Rafa Tenis, asocia explícitamente el owner y carga seis canchas. Si ya existen entre una y cinco canchas, se detiene sin pisar ni duplicar datos. Las verificaciones de RLS reproducibles están en `supabase/verification/rls-checks.sql`.
 
 ## Estructura
 

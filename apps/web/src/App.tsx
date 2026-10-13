@@ -1,6 +1,24 @@
-const futureModules = ['Canchas', 'Personas', 'Profesores', 'Torneos']
+import { AuthProvider, useAuth } from './auth/AuthProvider'
+import type { ReactNode } from 'react'
+import { LoginScreen } from './auth/LoginScreen'
+import { AdminPanel } from './features/admin/AdminPanel'
+import { supabase, supabaseConfiguration } from './lib/supabase'
 
-function App() {
+function AppContent() {
+  const { status, user } = useAuth()
+
+  if (status === 'loading') {
+    return <AppFrame><p className="screen-message" role="status">Verificando tu sesión…</p></AppFrame>
+  }
+
+  if (user === null) {
+    return <AppFrame><LoginScreen /></AppFrame>
+  }
+
+  return <AppFrame><AdminPanel user={user} /></AppFrame>
+}
+
+function AppFrame({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -8,44 +26,36 @@ function App() {
           <span className="brand-mark" aria-hidden="true">RT</span>
           <span>Rafa Tenis</span>
         </a>
-        <span className="status-pill">En construcción</span>
       </header>
-
-      <main id="inicio">
-        <section className="hero" aria-labelledby="hero-title">
-          <p className="eyebrow">Gestión simple para el club</p>
-          <h1 id="hero-title">Un lugar claro para organizar Rafa Tenis.</h1>
-          <p className="intro">
-            Estamos preparando una herramienta ágil para acompañar el día a día del club,
-            desde cualquier dispositivo.
-          </p>
-          <p className="development-notice" role="status">
-            Prototipo en desarrollo: reservas todavía no disponibles.
-          </p>
-        </section>
-
-        <section className="next-section" aria-labelledby="next-title">
-          <div>
-            <p className="eyebrow">Próximamente</p>
-            <h2 id="next-title">Base preparada para crecer por etapas.</h2>
-          </div>
-          <ul className="module-list" aria-label="Módulos futuros previstos">
-            {futureModules.map((module) => (
-              <li key={module}>
-                <span aria-hidden="true" />
-                {module}
-              </li>
-            ))}
-          </ul>
-        </section>
-      </main>
-
-      <footer>
-        <span>Rafa Tenis</span>
-        <span>Prototipo técnico · Argentina</span>
-      </footer>
+      <main id="inicio">{children}</main>
+      <footer><span>Rafa Tenis</span><span>Gestión del club · Argentina</span></footer>
     </div>
   )
 }
 
+function ConfigurationPending() {
+  return (
+    <AppFrame>
+      <section className="configuration-card" aria-labelledby="configuration-title">
+        <p className="eyebrow">Configuración pendiente</p>
+        <h1 id="configuration-title">Conectá Rafa Tenis con Supabase.</h1>
+        <p className="intro">La aplicación está lista, pero necesita sus variables públicas de conexión antes de habilitar el acceso administrativo.</p>
+        <ul>
+          {supabaseConfiguration.issues.map((issue) => <li key={issue}>{issue}</li>)}
+        </ul>
+        <p className="subtle-copy">Configurá <code>.env.local</code> a partir de <code>.env.example</code>. No incluyas claves de servicio en el navegador.</p>
+      </section>
+    </AppFrame>
+  )
+}
+
+function App() {
+  if (supabase === null) {
+    return <ConfigurationPending />
+  }
+
+  return <AuthProvider client={supabase}><AppContent /></AuthProvider>
+}
+
+export { AppContent, AppFrame }
 export default App
