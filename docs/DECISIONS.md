@@ -59,3 +59,9 @@
 **Motivo:** representar visitantes, menores y socios sin confundir identidad, acceso administrativo, membresía o deuda; conservar historial al editar una ficha.
 **Consecuencia:** no se deducen cuotas/cobros de membresía. Staff opera fichas pero no membresías; owner/admin las administra. No hay bajas físicas desde cliente.
 **Estado:** migración e interfaz Sprint 4 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.
+
+## D011 — Cuotas como obligaciones inmutables y pagos auditables
+**Decisión:** modelar configuración vigente, cuotas por período y pagos separados; calcular saldo desde movimientos válidos. La emisión es explícita y transaccional, y anular un pago exige motivo y preserva el registro.
+**Motivo:** evitar que modificar el importe mensual cambie historia, no inferir deuda desde reservas, y proteger cobros parciales/concurrentes.
+**Consecuencia:** no hay saldo mutable, pagos anticipados, suspensión por deuda ni eliminación física. Los montos se guardan como centavos enteros ARS; owner/admin es el único acceso financiero.
+**Estado:** migración e interfaz Sprint 5 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.

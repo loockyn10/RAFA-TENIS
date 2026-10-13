@@ -7,8 +7,8 @@
 | P0 | **2** | Agenda diaria + alta/edición/cancelación manual de reservas y DB antisolape | Implementado localmente; falta aplicar migración y validarlo en Supabase |
 | P0 | **3** | Bloqueos, reservas semanales acotadas, conflictos y base de pruebas multicliente | Implementado localmente; requiere aplicar y verificar migraciones 2–3 |
 | P1 | **4** | Personas y socios | Implementado localmente; falta aplicar/verificar migración 4 |
-| P0 | **5** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–4 |
-| P1 | **6** | Cuotas y pagos manuales | Reglas de membresía/economía verificadas |
+| P1 | **5** | Cuotas y pagos manuales | Implementado localmente; requiere aplicar/verificar migraciones 2–5 |
+| P0 | **Piloto** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–5 aplicados y verificados |
 | P1 | **7** | Portal del jugador / PWA autogestión | Política anticipación/cancelación/cupos |
 | P1 | **8** | Profesores, clases, agenda única | Reglas docentes |
 | P1 | **9** | Torneos, categorías, inscripciones, fixtures y resultados | Formatos deportivos acordados |

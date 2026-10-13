@@ -78,6 +78,44 @@ export type ClubMembershipRecord = {
   updated_at: string
 }
 
+export type ClubFeeSettings = {
+  club_id: string
+  monthly_amount_cents: number
+  due_day: number
+  currency: 'ARS'
+  updated_at: string
+  updated_by: string
+}
+
+export type MembershipDue = {
+  id: string
+  club_id: string
+  membership_id: string
+  period: string
+  amount_cents: number
+  due_date: string
+  created_at: string
+  created_by: string
+}
+
+export type PaymentMethod = 'cash' | 'bank_transfer' | 'mercado_pago' | 'other'
+
+export type MembershipDuePayment = {
+  id: string
+  club_id: string
+  due_id: string
+  amount_cents: number
+  payment_date: string
+  payment_method: PaymentMethod
+  reference: string | null
+  notes: string | null
+  created_at: string
+  created_by: string
+  voided_at: string | null
+  voided_by: string | null
+  void_reason: string | null
+}
+
 export type BlockDraft = {
   clubId: string
   courtId: string

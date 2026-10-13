@@ -30,10 +30,12 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - Permitir 17:00–18:00 y 18:00–19:00 contiguos; cancelación libera ocupación.
 - Verificar el mismo criterio de confirmación/bloqueo en toda la app, más pruebas simultáneas con instancia PostgreSQL/Supabase compatible.
 
-## Modelo económico futuro (NO implementar ahora)
-- Membresía distinta de deuda, cuotas por periodo y registros de pago.
-- Cargo/saldo separado de reserva/uso. Montos ARS exactos (`numeric` o centavos enteros definidos explícitamente; no `float`).
-- Tarifas históricas con vigencias; ajustes manuales auditables.
+## Cuotas sociales — Sprint 5 local
+- `club_fee_settings(club_id, monthly_amount_cents, due_day 1..28, currency='ARS')` conserva la configuración vigente; cambiarla no toca cuotas ya emitidas.
+- `membership_dues` usa período como primer día del mes, congela `amount_cents` y vencimiento, y es única por `(club_id, membership_id, period)`. No hay baja física ni edición directa.
+- `membership_due_payments` registra pagos manuales por cuota; un pago anulado conserva auditoría (`voided_at/by/reason`) y no integra el saldo. El saldo es `amount_cents - sum(pagos válidos)`, no una columna mutable.
+- Funciones `SECURITY DEFINER` con `auth.uid()`, rol owner/admin, `search_path` explícito y locks por cuota emiten en lote/individualmente, impiden sobrepagos concurrentes y anulan con motivo. La UI no usa `service_role`.
+- RLS solo permite lectura financiera a owner/admin del club. Staff no ve ni muta configuración, cuotas ni pagos.
 
 ## Seguridad
 - RLS en **todas las tablas privadas**, alcance por `club_id` y `auth.uid()`/membresía administrativa.
@@ -60,6 +62,10 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - `club_people` y `club_memberships` están versionadas localmente con RLS por club. Todo personal administrativo puede leer/crear/editar/desactivar fichas; solamente owner/admin crea o cambia membresías. No hay bajas físicas desde cliente.
 - Las FKs compuestas preservan aislamiento entre clubes para membresías y vínculos de reservas. La tabla de membresías impide duplicados por `(club_id, person_id)`.
 - La interfaz carga resultados acotados, busca por nombre o teléfono, y muestra únicamente reservas enlazadas por `person_id` en la ficha.
+
+### Sprint 5 — cuotas y pagos
+- La configuración, emisión mensual, emisión individual, pagos y anulación se resuelven mediante RPC; las tablas no conceden insert/update/delete directos al cliente autenticado.
+- La interfaz usa ARS en centavos, conversión decimal validada y fecha local del club para mostrar condición vencida. “Vencida” es temporal y se muestra junto al estado parcial o pendiente cuando corresponde.
 
 ## Operación e infraestructura
 - `.env.example` con nombres de variables públicas sin credenciales reales; `.env.local` ignorado.

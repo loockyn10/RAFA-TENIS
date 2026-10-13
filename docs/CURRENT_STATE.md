@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-13 (después de Sprint 4, implementación local)
+# CURRENT_STATE.md — 2026-10-13 (después de Sprint 5, implementación local)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -17,24 +17,27 @@
 - Migración `supabase/migrations/20261013030000_club_people_and_memberships.sql`: `club_people`, `club_memberships`, RLS/GRANT por roles, FK compuesta de club y vínculo opcional de fichas a reservas/series.
 - Sección administrativa **Jugadores**: alta rápida con nombre, edición, baja lógica, búsqueda por nombre/teléfono, filtros simples y ficha con reservas realmente vinculadas. Owner/admin gestiona membresías; staff las consulta.
 - El formulario de reserva conserva nombre libre y permite seleccionar una ficha activa, completando el nombre y persistiendo solo un vínculo opcional con snapshot textual.
+- Migración `supabase/migrations/20261013040000_membership_dues_and_payments.sql`: configuración ARS por club, cuotas mensuales inmutables por período, pagos manuales auditables y RLS financiero exclusivo owner/admin.
+- Sección administrativa **Cuotas**: configuración de importe/vencimiento, emisión mensual idempotente, cuota individual para socio activo, totales reales, búsqueda/filtros, detalle y registro de pagos.
+- Ficha de socio: estado de cuenta, saldo calculado, cuotas y pagos históricos; pagos anulables con motivo desde el detalle. Staff no ve datos financieros.
 
 ## Verificado localmente
 - El usuario informó haber verificado manualmente: inicio de sesión, acceso owner, seis canchas, edición y persistencia tras recargar contra el proyecto Supabase.
-- En este Sprint 3 finalizaron correctamente `pnpm typecheck`, `pnpm test` (18 pruebas), `pnpm lint` y `pnpm build`.
-- Las verificaciones locales del Sprint 4 se registran según la ejecución real de esta entrega; no equivalen a pruebas remotas de PostgreSQL/RLS.
+- En Sprint 5 finalizaron correctamente `pnpm typecheck` y `pnpm test` (23 pruebas). Lint y build quedan registrados según la ejecución real de esta entrega.
+- Las verificaciones locales no equivalen a pruebas remotas de PostgreSQL/RLS.
 - No se ejecutaron pruebas de RLS, exclusión GiST, atomicidad o concurrencia contra PostgreSQL/Supabase durante este sprint.
 
 ## Migraciones e infraestructura remota
 - Migraciones versionadas en repositorio: **sí**.
 - Sprint 1 aplicado y funcionalidad básica: **verificado manualmente por el usuario, no revalidado por este sprint**.
-- Migraciones Sprint 2/Sprint 3/Sprint 4 aplicadas en remoto: **no confirmadas; requieren aplicación explícita y ordenada**.
-- Exclusión temporal entre reservas/bloqueos, RLS, función de series, personas/socios y concurrencia contra Supabase real: **pendientes de verificación**.
+- Migraciones Sprint 2/Sprint 3/Sprint 4/Sprint 5 aplicadas en remoto: **no confirmadas; requieren aplicación explícita y ordenada**.
+- Exclusión temporal entre reservas/bloqueos, RLS, función de series, personas/socios y las garantías financieras contra Supabase real: **pendientes de verificación**.
 
 ## Contradicción detectada
 La arquitectura previa proyectaba una entidad `players`, pero las migraciones existentes no la creaban. Sprint 4 crea `club_people` como entidad real para evitar confundir una proyección documental con un esquema aplicado. No se modificó Git ni se hizo commit o push.
 
 ## No implementado
-No hay edición masiva de series, recurrencias infinitas, cuotas, cobros, profesores, clases, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
+No hay edición masiva de series, recurrencias infinitas, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, caja, profesores, clases, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
 ## Próximo trabajo
-Confirmar el estado real de las migraciones Sprint 2 y 3, aplicar 2–4 en orden si corresponde, y ejecutar los guiones SQL con usuarios de dos clubes. Luego validar jugadores, membresías y reserva vinculada desde PC y celular.
+Confirmar el estado real de las migraciones Sprint 2–4, aplicar 2–5 en orden si corresponde, y ejecutar los guiones SQL con usuarios de dos clubes. Luego validar cuotas, pagos parciales/anulaciones y estado de cuenta desde PC y celular.

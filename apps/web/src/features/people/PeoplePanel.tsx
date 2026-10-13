@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Club, ClubMembershipRecord, ClubPerson, Reservation } from '../../types/domain'
 import { isoToDateAndTime } from '../reservations/reservationUtils'
+import { MemberAccount } from '../fees/FinancePanel'
 
 type PeoplePanelProps = { client: SupabaseClient; club: Club; canManageMemberships: boolean }
 type Filter = 'all' | 'active-members' | 'non-members' | 'inactive'
@@ -42,7 +43,7 @@ export function PersonEditor({ person, onClose, onSave }: { person?: ClubPerson;
   </section></div>
 }
 
-function PersonDetail({ person, membership, reservations, timezone, loadingReservations, canManageMemberships, onClose, onEdit, onMembershipChange }: { person: ClubPerson; membership?: ClubMembershipRecord; reservations: Reservation[]; timezone: string; loadingReservations: boolean; canManageMemberships: boolean; onClose: () => void; onEdit: () => void; onMembershipChange: (status: 'active' | 'inactive') => void }) {
+function PersonDetail({ client, club, person, membership, reservations, timezone, loadingReservations, canManageMemberships, onClose, onEdit, onMembershipChange }: { client: SupabaseClient; club: Club; person: ClubPerson; membership?: ClubMembershipRecord; reservations: Reservation[]; timezone: string; loadingReservations: boolean; canManageMemberships: boolean; onClose: () => void; onEdit: () => void; onMembershipChange: (status: 'active' | 'inactive') => void }) {
   const now = Date.now()
   const upcoming = reservations.filter((item) => new Date(item.ends_at).getTime() >= now)
   const previous = reservations.filter((item) => new Date(item.ends_at).getTime() < now)
@@ -52,6 +53,7 @@ function PersonDetail({ person, membership, reservations, timezone, loadingReser
     <dl className="person-details"><div><dt>Estado</dt><dd>{person.active ? 'Activo' : 'Inactivo'}</dd></div><div><dt>Condición</dt><dd>{membershipLabel(membership)}</dd></div>{person.phone && <div><dt>Teléfono</dt><dd>{person.phone}</dd></div>}{person.email && <div><dt>Email</dt><dd>{person.email}</dd></div>}{person.notes && <div><dt>Notas</dt><dd>{person.notes}</dd></div>}</dl>
     {canManageMemberships && <div className="membership-actions">{membership?.status === 'active' ? <button className="secondary-button" type="button" onClick={() => onMembershipChange('inactive')}>Desactivar membresía</button> : <button type="button" onClick={() => onMembershipChange('active')}>{membership ? 'Activar membresía' : 'Convertir en socio'}</button>}</div>}
     <div className="person-detail-actions"><button className="secondary-button" type="button" onClick={onEdit}>Editar jugador</button></div>
+    <MemberAccount client={client} club={club} membership={membership} canManage={canManageMemberships} />
     {loadingReservations ? <p className="field-help">Cargando reservas vinculadas…</p> : <>{reservationList(upcoming, 'Próximas reservas')}{reservationList(previous, 'Reservas anteriores')}</>}
   </section></div>
 }
@@ -124,6 +126,6 @@ export function PeoplePanel({ client, club, canManageMemberships }: PeoplePanelP
     {feedback && <p className="form-success" role="status">{feedback}</p>}
     {status === 'loading' ? <p className="calendar-loading" role="status">Cargando jugadores…</p> : status === 'error' ? <p className="form-error" role="alert">{feedback}</p> : <div className="people-list">{visiblePeople.length === 0 ? <p className="screen-message">No encontramos jugadores con esos criterios.</p> : visiblePeople.map((person) => { const membership = membershipByPerson.get(person.id); return <button className="person-row" type="button" key={person.id} onClick={() => setDetail(person)}><span><strong>{person.full_name}</strong>{person.phone && <small>{person.phone}</small>}</span><span className="person-badges"><em className={person.active ? 'person-state active' : 'person-state'}>{person.active ? 'Activo' : 'Inactivo'}</em><em className={`membership-state ${membership?.status ?? 'none'}`}>{membershipLabel(membership)}</em></span></button> })}</div>}
     {editor && <PersonEditor person={editor === 'new' ? undefined : editor} onClose={() => setEditor(null)} onSave={savePerson} />}
-    {detail && <PersonDetail person={detail} membership={selectedMembership} reservations={reservations} timezone={club.timezone} loadingReservations={loadingReservations} canManageMemberships={canManageMemberships} onClose={() => setDetail(null)} onEdit={() => { setDetail(null); setEditor(detail) }} onMembershipChange={(nextStatus) => void changeMembership(detail, selectedMembership, nextStatus)} />}
+    {detail && <PersonDetail client={client} club={club} person={detail} membership={selectedMembership} reservations={reservations} timezone={club.timezone} loadingReservations={loadingReservations} canManageMemberships={canManageMemberships} onClose={() => setDetail(null)} onEdit={() => { setDetail(null); setEditor(detail) }} onMembershipChange={(nextStatus) => void changeMembership(detail, selectedMembership, nextStatus)} />}
   </section>
 }
