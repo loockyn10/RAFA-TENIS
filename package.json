@@ -1,0 +1,17 @@
+{
+  "name": "rafa-tenis",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.6.0",
+  "scripts": {
+    "dev": "pnpm --filter @rafa-tenis/web dev",
+    "typecheck": "pnpm --filter @rafa-tenis/web typecheck",
+    "lint": "pnpm --filter @rafa-tenis/web lint",
+    "test": "pnpm --filter @rafa-tenis/web test",
+    "build": "pnpm --filter @rafa-tenis/web build"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "pnpm": ">=9.6.0"
+  }
+}

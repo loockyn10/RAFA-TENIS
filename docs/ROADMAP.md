@@ -1,0 +1,20 @@
+# ROADMAP.md — priorización incremental
+
+| Prioridad | Sprint | Entregable demostrable | Dependencias |
+|---|---|---|---|
+| P0 | **0** | Bootstrap repo, PWA shell, tooling, docs; local build/test | Ninguna cuenta cloud necesaria |
+| P0 | **1** | Auth staff/admin, esquema `clubs`/`club_staff`/`courts`, RLS, carga de seis canchas | Política segura de primer admin y Supabase real |
+| P0 | **2** | Agenda diaria + alta manual de reservas, invitado/ficha, DB antisolape | Reglas mínimas de calendario validadas; Sprint 1 |
+| P0 | **3** | Editar/cancelar, bloquear cancha, manejo de conflictos y pruebas multicliente | Sprint 2 |
+| P0 | **4** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–3 |
+| P1 | **5** | Personas, socios, cuotas y pagos manuales | Reglas de membresía verificadas |
+| P1 | **6** | Portal del jugador / PWA autogestión | Política anticipación/cancelación/cupos |
+| P1 | **7** | Profesores, clases, agenda única | Reglas docentes |
+| P1 | **8** | Torneos, categorías, inscripciones, fixtures y resultados | Formatos deportivos acordados |
+| P2 | **9** | Eventos y noticias del club | Alcance eventos |
+| P2 | **10** | Cantina, ventas y cargos informales + caja básica | Política económica acordada |
+| Later | — | Rankings, estadísticas, check-in opcional, tiendas de apps | Demanda real |
+
+Cada sprint acaba con tests, documentación y verificación acorde a su alcance. **No son fechas comprometidas.** Los números son el nuevo orden propuesto, no las numeraciones del ZIP de origen.
+
+No avanzar de reservas hacia cobros complejos si integridad y autorización siguen sin verificar.
