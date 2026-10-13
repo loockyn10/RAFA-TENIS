@@ -32,7 +32,7 @@ Estos puntos describen el contexto conversado y deben contrastarse con Rafa ante
 
 ## Módulos y orden
 - **P0** Operación de canchas: configuración, reservas, edición, cancelación, bloqueos, antisolapamiento.
-- **P1** Personas/socios/cuotas; acceso opcional del jugador; profesores/clases; torneos/fixtures/resultados.
+- **P1** Personas y socios; acceso opcional del jugador; cuotas, profesores/clases y torneos/fixtures/resultados.
 - **P2** Eventos, cantina liviana y economía asociada.
 - **Later** Rankings, estadísticas avanzadas, gamificación, publicación en tiendas.
 
@@ -53,3 +53,5 @@ Rafa identifica en segundos las seis canchas, reserva para alguien que contactó
 El Sprint 1 incorpora acceso administrativo por email/contraseña y la consulta/administración de canchas según rol. El usuario informó haber verificado manualmente el acceso owner, las seis canchas, su edición y persistencia.
 
 El Sprint 3 amplía localmente esa agenda única con bloqueos activos/cancelados (motivo y observaciones) y reservas semanales de hasta 12 ocurrencias. Un bloqueo activo y una reserva confirmada se excluyen mutuamente; una ocurrencia se puede editar o cancelar sin modificar el resto de su serie. La vista usa transitoriamente 07:00–23:00 e intervalos visuales de 30 minutos; no constituyen una regla permanente de la base de datos. No se habilitan registro público, jugadores, cobros ni reglas comerciales.
+
+El Sprint 4 incorpora localmente fichas de jugadores por club, sin cuenta obligatoria, y membresías de socio activas/inactivas separadas de `club_staff`. Una reserva puede seguir usando nombre libre o vincular opcionalmente una ficha; conserva siempre el nombre textual histórico. No se agregan cuotas, cobros ni reglas por mora.

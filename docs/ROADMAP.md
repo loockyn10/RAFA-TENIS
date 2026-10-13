@@ -6,13 +6,14 @@
 | P0 | **1** | Auth staff/admin, esquema `clubs`/`club_staff`/`courts`, RLS, carga de seis canchas | Política segura de primer admin y Supabase real |
 | P0 | **2** | Agenda diaria + alta/edición/cancelación manual de reservas y DB antisolape | Implementado localmente; falta aplicar migración y validarlo en Supabase |
 | P0 | **3** | Bloqueos, reservas semanales acotadas, conflictos y base de pruebas multicliente | Implementado localmente; requiere aplicar y verificar migraciones 2–3 |
-| P0 | **4** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–3 |
-| P1 | **5** | Personas, socios, cuotas y pagos manuales | Reglas de membresía verificadas |
-| P1 | **6** | Portal del jugador / PWA autogestión | Política anticipación/cancelación/cupos |
-| P1 | **7** | Profesores, clases, agenda única | Reglas docentes |
-| P1 | **8** | Torneos, categorías, inscripciones, fixtures y resultados | Formatos deportivos acordados |
-| P2 | **9** | Eventos y noticias del club | Alcance eventos |
-| P2 | **10** | Cantina, ventas y cargos informales + caja básica | Política económica acordada |
+| P1 | **4** | Personas y socios | Implementado localmente; falta aplicar/verificar migración 4 |
+| P0 | **5** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–4 |
+| P1 | **6** | Cuotas y pagos manuales | Reglas de membresía/economía verificadas |
+| P1 | **7** | Portal del jugador / PWA autogestión | Política anticipación/cancelación/cupos |
+| P1 | **8** | Profesores, clases, agenda única | Reglas docentes |
+| P1 | **9** | Torneos, categorías, inscripciones, fixtures y resultados | Formatos deportivos acordados |
+| P2 | **10** | Eventos y noticias del club | Alcance eventos |
+| P2 | **11** | Cantina, ventas y cargos informales + caja básica | Política económica acordada |
 | Later | — | Rankings, estadísticas, check-in opcional, tiendas de apps | Demanda real |
 
 Cada sprint acaba con tests, documentación y verificación acorde a su alcance. **No son fechas comprometidas.** Los números son el nuevo orden propuesto, no las numeraciones del ZIP de origen.

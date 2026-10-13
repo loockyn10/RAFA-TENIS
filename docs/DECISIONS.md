@@ -53,3 +53,9 @@
 **Motivo:** reservas y bloqueos deben competir por la misma restricción temporal, y una serie no puede quedar parcialmente creada ante un conflicto concurrente.
 **Consecuencia:** bloques activos (`active`) y reservas confirmadas (`confirmed`) integran una exclusión GiST común; cada ocurrencia sigue siendo editable/cancelable individualmente. La función usa `SECURITY DEFINER` solo para agrupar inserciones y comprueba usuario, club, `search_path` y permisos explícitos.
 **Estado:** migración e interfaz Sprint 3 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.
+
+## D010 — Ficha de persona y membresía separadas
+**Decisión:** usar `club_people` para fichas sin Auth obligatorio y `club_memberships` para la condición active/inactive, separadas de `club_staff`. Las reservas guardan siempre `customer_name` y opcionalmente `person_id` validado dentro del mismo club.
+**Motivo:** representar visitantes, menores y socios sin confundir identidad, acceso administrativo, membresía o deuda; conservar historial al editar una ficha.
+**Consecuencia:** no se deducen cuotas/cobros de membresía. Staff opera fichas pero no membresías; owner/admin las administra. No hay bajas físicas desde cliente.
+**Estado:** migración e interfaz Sprint 4 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.

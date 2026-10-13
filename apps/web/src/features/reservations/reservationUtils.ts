@@ -59,6 +59,7 @@ export function reservationPayload(draft: ReservationDraft, timezone = CLUB_TIME
     club_id: draft.clubId,
     court_id: draft.courtId,
     customer_name: draft.customerName.trim(),
+    person_id: draft.personId,
     starts_at: zonedDateTimeToIso(draft.date, draft.startsAt, timezone),
     ends_at: zonedDateTimeToIso(draft.date, draft.endsAt, timezone),
     notes: draft.notes.trim() || null,

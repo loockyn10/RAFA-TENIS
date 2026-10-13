@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { BlockDraft, Club, Court, Reservation, ReservationDraft } from '../../types/domain'
+import type { BlockDraft, Club, ClubPerson, Court, Reservation, ReservationDraft } from '../../types/domain'
 import { CALENDAR_END_HOUR, CALENDAR_START_HOUR, SLOT_MINUTES, blockPayload, formatCalendarDate, isOverlapError, isValidReservationInterval, isoToDateAndTime, occupationConflicts, reservationPayload, reservationPosition, shiftCalendarDate, sortReservations, todayInTimezone, weeklyOccurrenceDates, zonedDateTimeToIso } from './reservationUtils'
 
 type ReservationCalendarProps = { client: SupabaseClient; club: Club; courts: Court[] }
-type ReservationFormProps = { club: Club; courts: Court[]; initial: ReservationDraft; reservation?: Reservation; onClose: () => void; onSave: (draft: ReservationDraft, reservation?: Reservation) => Promise<string | null>; onCancel: (reservation: Reservation) => Promise<string | null> }
+type ReservationFormProps = { client: SupabaseClient; club: Club; courts: Court[]; initial: ReservationDraft; reservation?: Reservation; onClose: () => void; onSave: (draft: ReservationDraft, reservation?: Reservation) => Promise<string | null>; onCancel: (reservation: Reservation) => Promise<string | null> }
 type BlockFormProps = { club: Club; courts: Court[]; initial: BlockDraft; block?: Reservation; onClose: () => void; onSave: (draft: BlockDraft, block?: Reservation) => Promise<string | null>; onCancel: (block: Reservation) => Promise<string | null> }
 
-const OCCUPATION_FIELDS = 'id, club_id, court_id, customer_name, starts_at, ends_at, status, occupation_type, block_reason, recurrence_series_id, notes, created_by, created_at, updated_at'
+const OCCUPATION_FIELDS = 'id, club_id, court_id, customer_name, person_id, starts_at, ends_at, status, occupation_type, block_reason, recurrence_series_id, notes, created_by, created_at, updated_at'
 
 function initialReservationDraft(clubId: string, courtId: string, date: string, startsAt = '07:00'): ReservationDraft {
   const [hour, minute] = startsAt.split(':').map(Number)
   const endMinutes = Math.min(hour * 60 + minute + 60, CALENDAR_END_HOUR * 60)
   const endsAt = `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`
-  return { clubId, courtId, date, startsAt, endsAt, customerName: '', notes: '', recurrence: 'single', recurrenceUntil: shiftCalendarDate(date, 77) }
+  return { clubId, courtId, date, startsAt, endsAt, customerName: '', personId: null, notes: '', recurrence: 'single', recurrenceUntil: shiftCalendarDate(date, 77) }
 }
 
 function initialBlockDraft(clubId: string, courtId: string, date: string, startsAt = '07:00'): BlockDraft {
@@ -36,10 +36,22 @@ function CourtAndTimeFields({ courts, courtId, date, startsAt, endsAt, onChange 
   </>
 }
 
-export function ReservationForm({ club, courts, initial, reservation, onClose, onSave, onCancel }: ReservationFormProps) {
+export function ReservationForm({ client, club, courts, initial, reservation, onClose, onSave, onCancel }: ReservationFormProps) {
   const [draft, setDraft] = useState(initial)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [matches, setMatches] = useState<ClubPerson[]>([])
+  useEffect(() => {
+    const query = draft.customerName.trim()
+    if (query.length < 2 || draft.personId !== null) { setMatches([]); return }
+    let cancelled = false
+    const timer = window.setTimeout(async () => {
+      const escaped = query.replace(/[,()]/g, ' ')
+      const { data } = await client.from('club_people').select('id, club_id, full_name, phone, email, notes, active, created_at, updated_at').eq('club_id', club.id).eq('active', true).or(`full_name.ilike.%${escaped}%,phone.ilike.%${escaped}%`).order('full_name', { ascending: true }).limit(8)
+      if (!cancelled) setMatches((data ?? []) as ClubPerson[])
+    }, 180)
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [client, club.id, draft.customerName, draft.personId])
   const occurrenceCount = draft.recurrence === 'weekly' ? weeklyOccurrenceDates(draft.date, draft.recurrenceUntil).length : 1
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -62,7 +74,8 @@ export function ReservationForm({ club, courts, initial, reservation, onClose, o
     <div className="modal-heading"><div><p className="eyebrow">{reservation ? 'Editar reserva' : 'Nueva reserva'}</p><h2 id="reservation-form-title">{reservation ? 'Actualizar turno' : 'Registrar turno'}</h2></div><button className="icon-button" type="button" aria-label="Cerrar" onClick={onClose}>×</button></div>
     <form className="reservation-form" onSubmit={(event) => void submit(event)}>
       <CourtAndTimeFields courts={courts} courtId={draft.courtId} date={draft.date} startsAt={draft.startsAt} endsAt={draft.endsAt} onChange={(change) => setDraft({ ...draft, ...change })} />
-      <label>Nombre de quien reserva<input value={draft.customerName} onChange={(event) => setDraft({ ...draft, customerName: event.target.value })} required autoFocus /></label>
+      <label>Nombre de quien reserva<input value={draft.customerName} onChange={(event) => setDraft({ ...draft, customerName: event.target.value, personId: null })} required autoFocus /></label>
+      {draft.personId ? <div className="selected-person"><span>Jugador registrado vinculado. El nombre de la reserva se conserva como historial.</span><button className="secondary-button" type="button" onClick={() => setDraft({ ...draft, personId: null })}>Usar nombre libre</button></div> : matches.length > 0 && <div className="player-matches" role="listbox" aria-label="Jugadores encontrados">{matches.map((person) => <button type="button" role="option" key={person.id} onClick={() => { setDraft({ ...draft, customerName: person.full_name, personId: person.id }); setMatches([]) }}><strong>{person.full_name}</strong>{person.phone && <span>{person.phone}</span>}</button>)}</div>}
       {!reservation && <fieldset className="recurrence-fieldset"><legend>Repetición</legend><label><input type="radio" name="recurrence" checked={draft.recurrence === 'single'} onChange={() => setDraft({ ...draft, recurrence: 'single' })} /> Reserva única</label><label><input type="radio" name="recurrence" checked={draft.recurrence === 'weekly'} onChange={() => setDraft({ ...draft, recurrence: 'weekly' })} /> Repetir semanalmente</label>{draft.recurrence === 'weekly' && <label>Última fecha de la serie<input aria-label="Última fecha de la serie" type="date" min={draft.date} value={draft.recurrenceUntil} onChange={(event) => setDraft({ ...draft, recurrenceUntil: event.target.value })} required /><span className="field-help">Se crearán {occurrenceCount} reservas (máximo 12), siempre el mismo día, horario y cancha.</span></label>}</fieldset>}
       {reservation?.recurrence_series_id && <p className="field-help">Esta es una ocurrencia de una serie. Los cambios solo afectan a este turno.</p>}
       <label>Observaciones <span className="optional-label">(opcional)</span><textarea value={draft.notes} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} rows={3} /></label>
@@ -144,14 +157,14 @@ export function ReservationCalendar({ client, club, courts }: ReservationCalenda
       const candidates = dates.map((occurrenceDate) => ({ id: `new-${occurrenceDate}`, court_id: draft.courtId, starts_at: zonedDateTimeToIso(occurrenceDate, draft.startsAt, club.timezone), ends_at: zonedDateTimeToIso(occurrenceDate, draft.endsAt, club.timezone) }))
       const conflicts = occupationConflicts(candidates, (data ?? []) as Reservation[])
       if (conflicts.length) return formatConflicts(conflicts, club.timezone)
-      const { error } = await client.rpc('create_weekly_reservation_series', { p_club_id: club.id, p_court_id: draft.courtId, p_customer_name: draft.customerName.trim(), p_notes: draft.notes.trim() || null, p_starts_at: candidates[0].starts_at, p_ends_at: candidates[0].ends_at, p_occurrence_count: dates.length })
+      const { error } = await client.rpc('create_weekly_reservation_series', { p_club_id: club.id, p_court_id: draft.courtId, p_customer_name: draft.customerName.trim(), p_person_id: draft.personId, p_notes: draft.notes.trim() || null, p_starts_at: candidates[0].starts_at, p_ends_at: candidates[0].ends_at, p_occurrence_count: dates.length })
       if (error) return isOverlapError(error) ? 'Uno de los horarios acaba de ser ocupado. No se creó ninguna reserva de la serie.' : 'No pudimos crear la serie. Revisá los datos e intentá nuevamente.'
       setForm(null); setFeedback(`Serie creada con ${dates.length} reservas.`); await reload(); return null
     }
     const candidate = { id: reservation?.id ?? 'new-reservation', court_id: draft.courtId, starts_at: payload.starts_at, ends_at: payload.ends_at }
     const conflicts = conflictFor(candidate)
     if (conflicts.length) return formatConflicts(conflicts, club.timezone)
-    const editablePayload = { court_id: payload.court_id, customer_name: payload.customer_name, starts_at: payload.starts_at, ends_at: payload.ends_at, notes: payload.notes }
+    const editablePayload = { court_id: payload.court_id, customer_name: payload.customer_name, person_id: payload.person_id, starts_at: payload.starts_at, ends_at: payload.ends_at, notes: payload.notes }
     const operation = reservation ? client.from('reservations').update(editablePayload).eq('id', reservation.id).eq('club_id', club.id) : client.from('reservations').insert(payload)
     const { error } = await operation
     if (error) return isOverlapError(error) ? 'Ese horario ya está ocupado en esta cancha. Elegí otro horario.' : 'No pudimos guardar la reserva. Revisá los datos e intentá nuevamente.'
@@ -178,14 +191,14 @@ export function ReservationCalendar({ client, club, courts }: ReservationCalenda
   const openEdit = (occupation: Reservation) => {
     const start = isoToDateAndTime(occupation.starts_at, club.timezone); const end = isoToDateAndTime(occupation.ends_at, club.timezone)
     if (occupation.occupation_type === 'block') setForm({ kind: 'block', block: occupation, draft: { clubId: club.id, courtId: occupation.court_id, date: start.date, startsAt: start.time, endsAt: end.time, reason: occupation.block_reason ?? 'Otro motivo', notes: occupation.notes ?? '' } })
-    else setForm({ kind: 'reservation', reservation: occupation, draft: { clubId: club.id, courtId: occupation.court_id, date: start.date, startsAt: start.time, endsAt: end.time, customerName: occupation.customer_name ?? '', notes: occupation.notes ?? '', recurrence: 'single', recurrenceUntil: start.date } })
+    else setForm({ kind: 'reservation', reservation: occupation, draft: { clubId: club.id, courtId: occupation.court_id, date: start.date, startsAt: start.time, endsAt: end.time, customerName: occupation.customer_name ?? '', personId: occupation.person_id, notes: occupation.notes ?? '', recurrence: 'single', recurrenceUntil: start.date } })
   }
   return <section className="reservations-section" aria-labelledby="reservations-title">
     <div className="section-heading"><div><p className="eyebrow">Operación</p><h2 id="reservations-title">Calendario</h2><p className="calendar-date-title">{formatCalendarDate(date, club.timezone)}</p></div><div className="calendar-controls"><button className="secondary-button" type="button" onClick={() => setDate(shiftCalendarDate(date, -1))}>← Anterior</button><button className="secondary-button" type="button" onClick={() => setDate(todayInTimezone(club.timezone))}>Hoy</button><button className="secondary-button" type="button" onClick={() => setDate(shiftCalendarDate(date, 1))}>Siguiente →</button><label>Ir a fecha<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label></div></div>
     <div className="calendar-create-actions"><button type="button" onClick={() => { const court = defaultCourt(); if (court) openCreate(court, '07:00') }}>Nueva reserva</button><button className="secondary-button" type="button" onClick={() => { const court = defaultCourt(); if (court) openCreate(court, '07:00', 'block') }}>Nuevo bloqueo</button></div>
     {feedback && status !== 'error' && <p className="form-success" role="status">{feedback}</p>}
     {courts.length === 0 ? <p className="screen-message">No hay canchas configuradas para este club.</p> : <><label className="mobile-court-selector">Cancha<select value={selectedCourtId} onChange={(event) => setSelectedCourtId(event.target.value)}>{courts.map((court) => <option key={court.id} value={court.id}>{court.name}{court.active ? '' : ' (inactiva)'}</option>)}</select></label><div className="calendar-scroll"><div className="daily-calendar" style={{ '--court-count': courts.length } as CSSProperties}><div className="time-axis">{slots.map((slot) => <div className="time-label" key={slot}>{slot}</div>)}</div>{courts.map((court) => <article key={court.id} className={`calendar-court ${court.id === selectedCourtId ? 'selected-mobile-court' : ''} ${court.active ? '' : 'inactive-court'}`}><h3>{court.name}</h3><div className="calendar-track" aria-label={`Disponibilidad de ${court.name}`}>{slots.map((slot) => <button key={slot} type="button" className="calendar-slot" aria-label={`${court.name}, ${slot}${court.active ? ', crear reserva' : ', cancha inactiva'}`} onClick={() => openCreate(court, slot)} disabled={!court.active} />)}{occupations.filter((occupation) => occupation.court_id === court.id).map((occupation) => { const position = reservationPosition(occupation, date, club.timezone); const isBlock = occupation.occupation_type === 'block'; return <button key={occupation.id} type="button" className={`reservation-block ${isBlock ? 'block-occupation' : ''}`} style={{ top: position.top, height: position.height }} onClick={(event) => { event.stopPropagation(); openEdit(occupation) }}><strong>{isBlock ? occupation.block_reason : occupation.customer_name}{!isBlock && occupation.recurrence_series_id ? ' · semanal' : ''}</strong><span>{isoToDateAndTime(occupation.starts_at, club.timezone).time}–{isoToDateAndTime(occupation.ends_at, club.timezone).time}</span></button> })}</div></article>)}</div></div>{status === 'loading' && <p className="calendar-loading" role="status">Cargando ocupaciones…</p>}{status === 'error' && <p className="form-error" role="alert">{feedback}</p>}</>}
-    {form?.kind === 'reservation' && <ReservationForm club={club} courts={courts} initial={form.draft} reservation={form.reservation} onClose={() => setForm(null)} onSave={saveReservation} onCancel={cancel} />}
+    {form?.kind === 'reservation' && <ReservationForm client={client} club={club} courts={courts} initial={form.draft} reservation={form.reservation} onClose={() => setForm(null)} onSave={saveReservation} onCancel={cancel} />}
     {form?.kind === 'block' && <BlockForm club={club} courts={courts} initial={form.draft} block={form.block} onClose={() => setForm(null)} onSave={saveBlock} onCancel={cancel} />}
   </section>
 }

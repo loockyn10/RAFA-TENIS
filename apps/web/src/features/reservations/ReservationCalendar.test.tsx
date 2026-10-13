@@ -5,15 +5,16 @@ import { BlockForm, ReservationForm } from './ReservationCalendar'
 
 const club: Club = { id: 'club-1', name: 'Rafa Tenis', timezone: 'America/Argentina/Buenos_Aires' }
 const courts: Court[] = [{ id: 'court-1', club_id: 'club-1', name: 'Cancha 1', surface: 'Polvo de ladrillo', active: true, display_order: 1 }]
-const draft: ReservationDraft = { clubId: 'club-1', courtId: 'court-1', date: '2026-10-13', startsAt: '18:00', endsAt: '19:00', customerName: 'Ana', notes: '', recurrence: 'single', recurrenceUntil: '2026-10-13' }
-const reservation: Reservation = { id: 'reservation-1', club_id: 'club-1', court_id: 'court-1', customer_name: 'Ana', starts_at: '2026-10-13T21:00:00.000Z', ends_at: '2026-10-13T22:00:00.000Z', status: 'confirmed', occupation_type: 'reservation', block_reason: null, recurrence_series_id: 'series-1', notes: null, created_by: 'user-1', created_at: '2026-10-01T00:00:00.000Z', updated_at: '2026-10-01T00:00:00.000Z' }
+const draft: ReservationDraft = { clubId: 'club-1', courtId: 'court-1', date: '2026-10-13', startsAt: '18:00', endsAt: '19:00', customerName: 'Ana', personId: null, notes: '', recurrence: 'single', recurrenceUntil: '2026-10-13' }
+const reservation: Reservation = { id: 'reservation-1', club_id: 'club-1', court_id: 'court-1', customer_name: 'Ana', person_id: null, starts_at: '2026-10-13T21:00:00.000Z', ends_at: '2026-10-13T22:00:00.000Z', status: 'confirmed', occupation_type: 'reservation', block_reason: null, recurrence_series_id: 'series-1', notes: null, created_by: 'user-1', created_at: '2026-10-01T00:00:00.000Z', updated_at: '2026-10-01T00:00:00.000Z' }
+const client = { from: vi.fn() } as never
 
 describe('ReservationForm', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('crea una reserva con los datos editados', async () => {
     const onSave = vi.fn().mockResolvedValue(null)
-    render(<ReservationForm club={club} courts={courts} initial={draft} onClose={vi.fn()} onSave={onSave} onCancel={vi.fn()} />)
+    render(<ReservationForm client={client} club={club} courts={courts} initial={draft} onClose={vi.fn()} onSave={onSave} onCancel={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Nombre de quien reserva'), { target: { value: 'Bruno' } })
     fireEvent.click(screen.getByRole('button', { name: 'Crear reserva' }))
@@ -23,7 +24,7 @@ describe('ReservationForm', () => {
 
   it('conserva los datos y explica el conflicto si la base rechaza un solape', async () => {
     const onSave = vi.fn().mockResolvedValue('Ese horario ya está ocupado en esta cancha. Elegí otro horario.')
-    render(<ReservationForm club={club} courts={courts} initial={draft} onClose={vi.fn()} onSave={onSave} onCancel={vi.fn()} />)
+    render(<ReservationForm client={client} club={club} courts={courts} initial={draft} onClose={vi.fn()} onSave={onSave} onCancel={vi.fn()} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Crear reserva' }))
 
@@ -34,7 +35,7 @@ describe('ReservationForm', () => {
   it('solicita confirmación y cambia el estado mediante la cancelación lógica', async () => {
     const onCancel = vi.fn().mockResolvedValue(null)
     vi.spyOn(window, 'confirm').mockReturnValue(true)
-    render(<ReservationForm club={club} courts={courts} initial={draft} reservation={reservation} onClose={vi.fn()} onSave={vi.fn()} onCancel={onCancel} />)
+    render(<ReservationForm client={client} club={club} courts={courts} initial={draft} reservation={reservation} onClose={vi.fn()} onSave={vi.fn()} onCancel={onCancel} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar reserva' }))
 
@@ -43,7 +44,7 @@ describe('ReservationForm', () => {
 
   it('envía una serie semanal limitada por la fecha final', async () => {
     const onSave = vi.fn().mockResolvedValue(null)
-    render(<ReservationForm club={club} courts={courts} initial={draft} onClose={vi.fn()} onSave={onSave} onCancel={vi.fn()} />)
+    render(<ReservationForm client={client} club={club} courts={courts} initial={draft} onClose={vi.fn()} onSave={onSave} onCancel={vi.fn()} />)
     fireEvent.click(screen.getByLabelText('Repetir semanalmente'))
     fireEvent.change(screen.getByLabelText('Última fecha de la serie'), { target: { value: '2026-11-03' } })
     fireEvent.click(screen.getByRole('button', { name: 'Revisar y crear serie' }))

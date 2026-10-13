@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import { useAuth } from '../../auth/AuthProvider'
 import { CourtList, type CourtPatch } from '../courts/CourtList'
 import { ReservationCalendar } from '../reservations/ReservationCalendar'
+import { PeoplePanel } from '../people/PeoplePanel'
 import type { Club, ClubMembership, ClubRole, Court } from '../../types/domain'
 
 type MembershipRow = { club_id: string; role: ClubRole }
@@ -16,7 +17,7 @@ export function AdminPanel({ user }: { user: User }) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [error, setError] = useState<string | null>(null)
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const [section, setSection] = useState<'home' | 'reservations' | 'courts'>('home')
+  const [section, setSection] = useState<'home' | 'reservations' | 'people' | 'courts'>('home')
 
   useEffect(() => {
     let cancelled = false
@@ -127,10 +128,12 @@ export function AdminPanel({ user }: { user: User }) {
           <nav className="admin-nav" aria-label="Secciones administrativas">
             <button className={section === 'home' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('home')}>Inicio</button>
             <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('reservations')}>Reservas</button>
+            <button className={section === 'people' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('people')}>Jugadores</button>
             <button className={section === 'courts' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('courts')}>Canchas</button>
           </nav>
           {section === 'home' && <section className="home-panel"><p className="eyebrow">Resumen</p><h2>Elegí qué querés gestionar</h2><p>Consultá y cargá turnos desde <strong>Reservas</strong>, o actualizá las canchas del club desde <strong>Canchas</strong>.</p></section>}
           {section === 'reservations' && <ReservationCalendar client={client} club={selectedClub} courts={courts} />}
+          {section === 'people' && <PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} />}
           {section === 'courts' && <CourtList courts={courts} canManage={canManage} onSave={saveCourt} />}
         </>}
       </>}
