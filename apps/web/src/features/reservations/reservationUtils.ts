@@ -1,4 +1,4 @@
-import type { Reservation, ReservationDraft } from '../../types/domain'
+import type { BlockDraft, Reservation, ReservationDraft } from '../../types/domain'
 
 export const CLUB_TIMEZONE = 'America/Argentina/Buenos_Aires'
 export const CALENDAR_START_HOUR = 7
@@ -65,12 +65,41 @@ export function reservationPayload(draft: ReservationDraft, timezone = CLUB_TIME
   }
 }
 
+export function blockPayload(draft: BlockDraft, timezone = CLUB_TIMEZONE) {
+  return {
+    club_id: draft.clubId,
+    court_id: draft.courtId,
+    starts_at: zonedDateTimeToIso(draft.date, draft.startsAt, timezone),
+    ends_at: zonedDateTimeToIso(draft.date, draft.endsAt, timezone),
+    status: 'active' as const,
+    occupation_type: 'block' as const,
+    block_reason: draft.reason.trim(),
+    notes: draft.notes.trim() || null,
+  }
+}
+
+export function weeklyOccurrenceDates(startDate: string, untilDate: string) {
+  const dates: string[] = []
+  for (let current = startDate; current <= untilDate && dates.length <= 12; current = shiftCalendarDate(current, 7)) dates.push(current)
+  return dates
+}
+
+export function occupationConflicts(candidates: Array<Pick<Reservation, 'court_id' | 'starts_at' | 'ends_at' | 'id'>>, occupations: Reservation[]) {
+  return candidates.flatMap((candidate) => occupations.filter((occupation) =>
+    occupation.id !== candidate.id
+    && occupation.court_id === candidate.court_id
+    && occupation.status !== 'cancelled'
+    && candidate.starts_at < occupation.ends_at
+    && candidate.ends_at > occupation.starts_at,
+  ).map((occupation) => ({ candidate, occupation })))
+}
+
 export function sortReservations(reservations: Reservation[]) {
-  return [...reservations].sort((first, second) => first.starts_at.localeCompare(second.starts_at) || first.customer_name.localeCompare(second.customer_name, 'es'))
+  return [...reservations].sort((first, second) => first.starts_at.localeCompare(second.starts_at) || (first.customer_name ?? first.block_reason ?? '').localeCompare(second.customer_name ?? second.block_reason ?? '', 'es'))
 }
 
 export function isOverlapError(error: { code?: string; message?: string } | null | undefined) {
-  return error?.code === '23P01' || /reservations_confirmed_court_no_overlap/i.test(error?.message ?? '')
+  return error?.code === '23P01' || /reservations_(confirmed|active)_court_no_overlap|reservations_occupied_court_no_overlap/i.test(error?.message ?? '')
 }
 
 export function reservationPosition(reservation: Reservation, date: string, timezone = CLUB_TIMEZONE) {

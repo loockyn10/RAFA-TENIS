@@ -15,7 +15,8 @@
 - `club_staff(club_id, auth_user_id, role, ...)`
 - `courts(id, club_id, name, surface, active, display_order, ...)`
 - `players(id, club_id, name, optional_contact, optional_auth_user_id, ...)`
-- `reservations(id, club_id, court_id, customer_name, starts_at, ends_at, status, notes?, created_by, ...)` (migración Sprint 02 versionada, pendiente de aplicación remota)
+- `reservations(id, club_id, court_id, occupation_type, customer_name?, block_reason?, starts_at, ends_at, status, recurrence_series_id?, notes?, created_by, ...)`: agenda única; `reservation/confirmed` y `block/active` ocupan cancha.
+- `reservation_series(id, club_id, court_id, customer_name, starts_at, ends_at, occurrence_count<=12, ...)`: origen de las ocurrencias semanales; no habilita edición masiva todavía.
 
 Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del **mismo club** (integridad de datos, no solo validación de pantalla). Un jugador puede no tener login. Tipos futuros: play, lesson, tournament, maintenance, event; no construir módulos futuros de antemano.
 
@@ -46,8 +47,9 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 
 ### Sprint 2 — reservas
 - `reservations` referencia a `clubs` y a la clave compuesta `(club_id, court_id)` de `courts`, de modo que la correspondencia cancha/club se valida en PostgreSQL.
-- Un trigger permite crear o reactivar una reserva confirmada solo en una cancha activa. La edición de una reserva ya confirmada y la cancelación no requieren reactivar una cancha que se haya deshabilitado después.
-- El rango `tstzrange(starts_at, ends_at, '[)')` y una exclusión GiST condicionada a `status = 'confirmed'` impiden solapes concurrentes y permiten turnos contiguos. Requiere la extensión `btree_gist`.
+- Un trigger permite crear o reactivar una ocupación que reserva cancha solo si esta sigue activa. La edición de una ocupación existente y la cancelación no requieren reactivar una cancha deshabilitada después.
+- El rango `tstzrange(starts_at, ends_at, '[)')` y una exclusión GiST condicionada a `status in ('confirmed', 'active')` impiden solapes entre reservas y bloqueos, incluso concurrentes, y permiten turnos contiguos. Requiere `btree_gist`.
+- `public.create_weekly_reservation_series(...)` es `SECURITY DEFINER` con `search_path` fijo, verifica `auth.uid()` y membresía antes de insertar la cabecera y todas las ocurrencias en una única transacción. Calcula semanas en la zona de `clubs` y se concede solo a `authenticated`.
 - RLS y privilegios de columna permiten a cualquier miembro `owner`, `admin` o `staff` consultar, crear y actualizar reservas de su club, pero no borrar físicamente ni alterar su club, autor o metadatos de auditoría.
 - La aplicación convierte la fecha/hora de la agenda desde `clubs.timezone` (inicialmente `America/Argentina/Buenos_Aires`) a instantes `timestamptz`; no utiliza la zona horaria del dispositivo para persistir.
 

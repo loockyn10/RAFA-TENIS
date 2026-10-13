@@ -123,7 +123,7 @@ export function AdminPanel({ user }: { user: User }) {
       {memberships.length === 0 ? <NoClubAccess /> : <>
         {clubs.length > 1 && <label className="club-selector">Club<select value={selectedClubId ?? ''} onChange={(event) => setSelectedClubId(event.target.value)}>{clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></label>}
         {selectedClub && <>
-          <section className="stats-grid" aria-label="Resumen de canchas"><div><span>Total de canchas</span><strong>{courts.length}</strong></div><div><span>Canchas activas</span><strong>{activeCourts}</strong></div><div><span>Tu permiso</span><strong>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Lectura'}</strong></div></section>
+          <section className="stats-grid" aria-label="Resumen de canchas"><div><span>Total de canchas</span><strong>{courts.length}</strong></div><div><span>Canchas activas</span><strong>{activeCourts}</strong></div><div><span>Tu permiso</span><strong>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Personal operativo'}</strong></div></section>
           <nav className="admin-nav" aria-label="Secciones administrativas">
             <button className={section === 'home' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('home')}>Inicio</button>
             <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('reservations')}>Reservas</button>

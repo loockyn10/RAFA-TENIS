@@ -47,3 +47,9 @@
 **Motivo:** permitir una agenda rápida sin exigir una ficha ni una cuenta al jugador y conservar historial de cancelaciones, aun con operaciones simultáneas.
 **Consecuencia:** la agenda se presenta inicialmente de 07:00 a 23:00 con grilla de 30 minutos, solo como decisión de interfaz. Horarios del club, duraciones, bloqueos y reglas de cancelación continúan pendientes de validación.
 **Estado:** migración e interfaz locales versionadas; aplicación y prueba contra Supabase pendientes.
+
+## D009 — Bloqueos y recurrencias en la misma agenda
+**Decisión:** extender `reservations` con `occupation_type`, motivo de bloqueo y referencia opcional a `reservation_series`; no crear una tabla de bloqueos independiente. Las series semanales se crean mediante una función PostgreSQL atómica y quedan limitadas a 12 ocurrencias.
+**Motivo:** reservas y bloqueos deben competir por la misma restricción temporal, y una serie no puede quedar parcialmente creada ante un conflicto concurrente.
+**Consecuencia:** bloques activos (`active`) y reservas confirmadas (`confirmed`) integran una exclusión GiST común; cada ocurrencia sigue siendo editable/cancelable individualmente. La función usa `SECURITY DEFINER` solo para agrupar inserciones y comprueba usuario, club, `search_path` y permisos explícitos.
+**Estado:** migración e interfaz Sprint 3 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.

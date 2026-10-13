@@ -7,9 +7,9 @@
 - [ ] Acordar con Rafa titularidad de cuentas, costos de hosting/dominio y alcance del soporte.
 - [ ] Configurar un proyecto Supabase en región adecuada y definir quién tendrá acceso administrativo.
 - [x] Sprint 1: el usuario verificó manualmente acceso owner, seis canchas, edición y persistencia. Falta evidencia reproducible de RLS con múltiples usuarios.
-- [ ] Aplicar `20261013010000_reservations.sql` y verificar que `btree_gist` y la exclusión GiST se creen correctamente.
-- [ ] Ejecutar `supabase/verification/rls-checks.sql` con usuarios reales de dos clubes y registrar RLS, solapes, cancelación, contigüidad y concurrencia.
-- [ ] Validar manualmente el calendario Sprint 2 contra Supabase desde escritorio y celular.
+- [ ] Aplicar en orden `20261013010000_reservations.sql` y `20261013020000_blocks_and_recurring_reservations.sql`; confirmar el estado remoto antes de hacerlo por la contradicción de documentación/consigna.
+- [ ] Ejecutar `supabase/verification/rls-checks.sql` y `supabase/verification/sprint-03-blocks-and-series-checks.sql` con usuarios reales de dos clubes; registrar RLS, solapes cruzados, cancelación, contigüidad, atomicidad y concurrencia.
+- [ ] Validar manualmente el calendario Sprint 3 contra Supabase desde escritorio y celular: bloqueo, motivo, conflicto reserva↔bloqueo, serie semanal y edición/cancelación individual.
 
 ## P1/P2 (no tomar ahora)
 - [ ] Acordar reglas de cuotas, profesores, torneos y cantina cuando llegue su sprint.
