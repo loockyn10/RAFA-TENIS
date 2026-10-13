@@ -18,6 +18,7 @@ function AppContent() {
   return <AppFrame><AdminPanel user={user} /></AppFrame>
 }
 
+
 function AppFrame({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
