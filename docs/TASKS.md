@@ -13,6 +13,8 @@
 - [ ] Ejecutar `supabase/verification/sprint-04-people-and-memberships-checks.sql` y validar Sprint 4 desde escritorio y celular: alta/edición/baja lógica, búsqueda, membresía por rol, aislamiento y reserva con nombre libre o ficha vinculada.
 - [ ] Ejecutar `supabase/verification/sprint-05-membership-dues-and-payments-checks.sql` y validar Sprint 5 desde escritorio y celular: configuración, generación idempotente, cuota individual, pagos parciales, sobrepago, anulación, RLS y concurrencia.
 - [ ] Ejecutar `supabase/verification/sprint-06-tennis-school-checks.sql` y validar Sprint 6 desde escritorio y celular: profesor, alumnos, cupos, agenda compartida, recurrencia, cancelación, aislamiento y roles.
+- [ ] Confirmar el historial remoto de Sprint 6 indicado como pendiente en esta documentación antes de aplicar `20261013060000_tournaments.sql`; no reaplicar migraciones históricas.
+- [ ] Ejecutar `supabase/verification/sprint-07-tournaments-checks.sql` con usuarios de dos clubes: fixture 4/6/8, BYE, duplicados, avances, W.O., campeón, permisos y choques partido↔reserva/clase/bloqueo.
 
 ## P1/P2 (no tomar ahora)
 - [ ] Confirmar con Rafa importe inicial, día de vencimiento y criterio operativo de emisión mensual antes de habilitar cuotas en el club.

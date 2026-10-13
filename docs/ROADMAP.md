@@ -12,7 +12,7 @@
 | P0 | **Piloto** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–5 aplicados y verificados |
 | P1 | **7** | Portal del jugador / PWA autogestión | Política anticipación/cancelación/cupos |
 | P1 | **8** | Portal del profesor, si se acuerda | Política de acceso docente y privacidad |
-| P1 | **9** | Torneos, categorías, inscripciones, fixtures y resultados | Formatos deportivos acordados |
+| P1 | **7** | Torneos, categorías, inscripciones, fixtures y resultados | Implementado localmente; requiere aplicar/verificar migración 7 |
 | P2 | **10** | Eventos y noticias del club | Alcance eventos |
 | P2 | **11** | Cantina, ventas y cargos informales + caja básica | Política económica acordada |
 | Later | — | Rankings, estadísticas, check-in opcional, tiendas de apps | Demanda real |

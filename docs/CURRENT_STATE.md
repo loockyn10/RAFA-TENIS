@@ -22,25 +22,29 @@
 - Ficha de socio: estado de cuenta, saldo calculado, cuotas y pagos históricos; pagos anulables con motivo desde el detalle. Staff no ve datos financieros.
 - Migración `supabase/migrations/20261013050000_tennis_school.sql`: perfiles `club_coaches`, clases, alumnos y series de clases; los RPC crean, editan y cancelan clases de manera atómica junto con la ocupación de cancha.
 - Sección administrativa **Escuela de tenis**: alta/activación de profesores desde personas existentes, clases individuales/grupales sin alumnos obligatorios, cupo, alta rápida de alumno, edición/cancelación y recurrencia semanal de hasta 12 clases. El calendario distingue clases y permite abrir su detalle; la creación puede iniciarse desde el calendario.
+- Migración `supabase/migrations/20261013060000_tournaments.sql`: torneo, categorías Singles/Dobles, inscripciones con snapshots de `club_people`, fixture de eliminación directa, pases libres, resultados/W.O., campeón y programación atómica mediante la ocupación central `reservations` de tipo `tournament_match`.
+- Sección administrativa **Torneos**: alta y apertura de inscripciones, categorías, alta rápida de persona, inscripciones, fixture por rondas, programación/cancelación de cancha y resultados. El calendario diferencia partidos de torneo y abre su gestión; no permite tratarlos como reservas genéricas.
 
 ## Verificado localmente
 - El usuario informó haber verificado manualmente: inicio de sesión, acceso owner, seis canchas, edición y persistencia tras recargar contra el proyecto Supabase.
 - En Sprint 6 finalizaron correctamente `pnpm typecheck`, `pnpm lint`, `pnpm test` (25 pruebas) y `pnpm build`. El build emitió la advertencia de bundle JavaScript superior a 500 kB; no se alteró el alcance para resolverla.
 - Las verificaciones locales no equivalen a pruebas remotas de PostgreSQL/RLS.
 - No se ejecutaron pruebas de RLS, exclusión GiST, atomicidad o concurrencia contra PostgreSQL/Supabase durante este sprint.
+- Sprint 7 pendiente de ejecutar remotamente: migración, RLS, RPC, fixture, avances y superposiciones de partidos contra Supabase real.
 
 ## Migraciones e infraestructura remota
 - Migraciones versionadas en repositorio: **sí**.
 - Sprint 1 aplicado y funcionalidad básica: **verificado manualmente por el usuario, no revalidado por este sprint**.
 - Sprint 2/Sprint 3/Sprint 4/Sprint 5: **el usuario informó que Sprint 5 funciona contra Supabase; por sus dependencias se infiere que fueron aplicadas**. No se revalidaron sus versiones, RLS exhaustivo ni concurrencia en este sprint.
 - Sprint 6: **migración versionada localmente, no aplicada remotamente**.
+- Sprint 7: **migración versionada localmente, no aplicada remotamente**.
 - Exclusión temporal entre reservas/bloqueos/clases, RLS, funciones de series, personas/socios y garantías financieras contra Supabase real: **pendientes de verificación reproducible**.
 
 ## Contradicción detectada
 La arquitectura previa proyectaba una entidad `players`, pero las migraciones existentes no la creaban. Sprint 4 crea `club_people` como entidad real para evitar confundir una proyección documental con un esquema aplicado. No se hizo commit ni push.
 
 ## No implementado
-No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, caja, torneos, cantina, recuperación de cuentas, invitaciones, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
+No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, caja, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, cantina, recuperación de cuentas, invitaciones, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
 ## Próximo trabajo
 Confirmar en Supabase el historial de Sprint 2–5, aplicar Sprint 6 solo después de esa comprobación, y ejecutar los guiones SQL con usuarios de dos clubes. Luego validar agenda, escuela, cuotas y pagos desde PC y celular.

@@ -74,6 +74,12 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - `create_tennis_lesson`, `update_tennis_lesson`, `cancel_tennis_lesson` y `create_weekly_tennis_lesson_series` son `SECURITY DEFINER`, validan `auth.uid()`, pertenencia al club, profesor activo, alumnos del club, cupo y horario. La serie se inserta en una sola transacción y se limita a 12 ocurrencias.
 - Owner/admin gestionan perfiles de profesor; owner/admin/staff consultan la escuela y operan clases/alumnos. Las tablas de clases no conceden escritura directa al cliente; no se expone `service_role`.
 
+### Sprint 7 — torneos
+- `tournaments`, `tournament_categories`, `tournament_entries`, `tournament_entry_members` y `tournament_matches` conservan torneo, modalidad, snapshots históricos de participantes, cuadro y resultado. FKs compuestas por club y RLS aíslan todas las relaciones.
+- Las operaciones estructurales son RPC `SECURITY DEFINER` para owner/admin: crear torneo/categoría/inscripción y generar fixture. El sorteo persiste dentro de una transacción, se bloquea por categoría y no permite un segundo fixture. La modalidad y la unicidad `(category_id, person_id)` impiden pares incompatibles o duplicados.
+- El fixture es eliminación directa 2–32; los BYE avanzan al siguiente partido sin crear un partido ficticio de primera ronda. Registrar resultado valida que el ganador participe, bloquea correcciones cuando existen rondas posteriores finalizadas y avanza una única vez.
+- Un partido programado crea/edita una `reservations` `occupation_type='tournament_match'` exclusivamente por RPC, cubierta por la exclusión GiST existente. Staff puede programar, cancelar programación y cargar resultados; no crea ni modifica estructura. No hay `service_role` en React.
+
 ## Operación e infraestructura
 - `.env.example` con nombres de variables públicas sin credenciales reales; `.env.local` ignorado.
 - Ninguna migración creada equivale a aplicada; distinguir verificado local/remoto/producción.

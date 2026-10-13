@@ -20,7 +20,7 @@ export type Court = {
   display_order: number
 }
 
-export type OccupationType = 'reservation' | 'block' | 'lesson'
+export type OccupationType = 'reservation' | 'block' | 'lesson' | 'tournament_match'
 export type ReservationStatus = 'confirmed' | 'active' | 'cancelled'
 
 export type Reservation = {
@@ -168,4 +168,36 @@ export type LessonDraft = {
   notes: string
   recurrence: 'single' | 'weekly'
   recurrenceUntil: string
+}
+
+export type TournamentStatus = 'draft' | 'registration_open' | 'in_progress' | 'completed' | 'cancelled'
+export type TournamentCategoryStatus = 'open' | 'fixture_generated' | 'completed' | 'cancelled'
+
+export type Tournament = {
+  id: string
+  club_id: string
+  name: string
+  description: string | null
+  starts_on: string
+  ends_on: string
+  status: TournamentStatus
+  created_at: string
+}
+
+export type TournamentCategory = {
+  id: string
+  club_id: string
+  tournament_id: string
+  name: string
+  modality: 'singles' | 'doubles'
+  status: TournamentCategoryStatus
+  champion_entry_id: string | null
+}
+
+export type TournamentEntry = { id: string; club_id: string; category_id: string; display_name: string; draw_position: number | null }
+export type TournamentEntryMember = { entry_id: string; category_id: string; club_id: string; person_id: string; person_name_snapshot: string }
+export type TournamentMatch = {
+  id: string; club_id: string; tournament_id: string; category_id: string; round_number: number; position: number
+  entry_one_id: string | null; entry_two_id: string | null; winner_entry_id: string | null; reservation_id: string | null
+  status: 'pending' | 'scheduled' | 'completed' | 'cancelled'; score_text: string | null; is_walkover: boolean; finished_at: string | null
 }

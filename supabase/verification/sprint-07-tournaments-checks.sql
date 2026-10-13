@@ -1,0 +1,13 @@
+-- Sprint 07 — ejecutar manualmente SOLO en un proyecto de prueba con dos usuarios/clubes.
+-- No es idempotente y no debe correrse sobre datos operativos sin adaptar los UUID.
+-- 1) Como owner/admin: crear torneo, abrir inscripciones y una categoría Singles.
+-- select * from public.create_tournament('<club_uuid>', 'Copa prueba', null, current_date, current_date + 7);
+-- select * from public.update_tournament('<tournament_uuid>', 'Copa prueba', null, current_date, current_date + 7, 'registration_open');
+-- select * from public.create_tournament_category('<tournament_uuid>', 'Singles A', 'singles');
+-- 2) Crear 4, 6 y 8 inscripciones con create_tournament_entry; confirmar que repetir persona/categoría falla (23505).
+-- 3) generate_tournament_fixture('<category_uuid>') debe crear una sola vez; repetir falla. Con 6 no debe existir un partido de ronda 1 con participante nulo.
+-- select round_number, position, entry_one_id, entry_two_id from public.tournament_matches where category_id = '<category_uuid>' order by 1, 2;
+-- 4) record_tournament_match_result debe rechazar un ganador ajeno, avanzar una sola vez y completar campeón al terminar final.
+-- 5) schedule_tournament_match con cancha/intervalo ocupado por reserva, bloqueo o clase debe devolver 23P01; cancelar programación debe dejar reservations.status='cancelled'.
+-- 6) Como staff: probar que puede programar/cargar resultado pero create_tournament y generate_tournament_fixture devuelven 42501.
+-- 7) Como usuario del otro club: probar que no puede leer ni invocar RPC sobre IDs del primer club.

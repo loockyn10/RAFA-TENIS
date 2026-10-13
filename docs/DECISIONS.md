@@ -71,3 +71,9 @@
 **Motivo:** distinguir el negocio de la escuela de una reserva común sin abrir una agenda paralela ni duplicar fichas personales.
 **Consecuencia:** las clases se crean, editan y cancelan mediante RPC atómicas; la exclusión GiST de agenda cubre sus canchas y el profesor se serializa por lock asesorado. Profesor no concede acceso administrativo.
 **Estado:** migración e interfaz Sprint 6 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.
+
+## D013 — Fixture de eliminación directa y agenda compartida
+**Decisión:** los torneos usan categorías Singles/Dobles, inscripciones desde `club_people` y cuadro de eliminación directa de 2–32 participantes. Los BYE avanzan automáticamente y un partido ocupa cancha mediante una reserva `tournament_match` creada sólo por RPC.
+**Motivo:** preservar historial, evitar duplicados/avances incoherentes y mantener una única protección GiST para reserva, bloqueo, clase y partido.
+**Consecuencia:** owner/admin modifica estructura; staff programa y registra resultados. No hay zonas, ranking, siembra ni corrección de cuadros avanzados.
+**Estado:** migración e interfaz Sprint 7 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.

@@ -7,6 +7,7 @@ import { MemberAccount } from '../fees/FinancePanel'
 type PeoplePanelProps = { client: SupabaseClient; club: Club; canManageMemberships: boolean }
 type Filter = 'all' | 'active-members' | 'non-members' | 'inactive'
 type PersonForm = { fullName: string; phone: string; email: string; notes: string; active: boolean }
+type TournamentParticipation = { id: string; tournamentName: string; categoryName: string; modality: string; partnerName: string | null; status: string }
 
 const personFields = 'id, club_id, full_name, phone, email, notes, active, created_at, updated_at'
 const membershipFields = 'id, club_id, person_id, status, joined_on, created_at, updated_at'
@@ -43,7 +44,7 @@ export function PersonEditor({ person, onClose, onSave }: { person?: ClubPerson;
   </section></div>
 }
 
-function PersonDetail({ client, club, person, membership, reservations, timezone, loadingReservations, canManageMemberships, onClose, onEdit, onMembershipChange }: { client: SupabaseClient; club: Club; person: ClubPerson; membership?: ClubMembershipRecord; reservations: Reservation[]; timezone: string; loadingReservations: boolean; canManageMemberships: boolean; onClose: () => void; onEdit: () => void; onMembershipChange: (status: 'active' | 'inactive') => void }) {
+function PersonDetail({ client, club, person, membership, reservations, participations, timezone, loadingReservations, canManageMemberships, onClose, onEdit, onMembershipChange }: { client: SupabaseClient; club: Club; person: ClubPerson; membership?: ClubMembershipRecord; reservations: Reservation[]; participations: TournamentParticipation[]; timezone: string; loadingReservations: boolean; canManageMemberships: boolean; onClose: () => void; onEdit: () => void; onMembershipChange: (status: 'active' | 'inactive') => void }) {
   const now = Date.now()
   const upcoming = reservations.filter((item) => new Date(item.ends_at).getTime() >= now)
   const previous = reservations.filter((item) => new Date(item.ends_at).getTime() < now)
@@ -54,6 +55,7 @@ function PersonDetail({ client, club, person, membership, reservations, timezone
     {canManageMemberships && <div className="membership-actions">{membership?.status === 'active' ? <button className="secondary-button" type="button" onClick={() => onMembershipChange('inactive')}>Desactivar membresía</button> : <button type="button" onClick={() => onMembershipChange('active')}>{membership ? 'Activar membresía' : 'Convertir en socio'}</button>}</div>}
     <div className="person-detail-actions"><button className="secondary-button" type="button" onClick={onEdit}>Editar jugador</button></div>
     <MemberAccount client={client} club={club} membership={membership} canManage={canManageMemberships} />
+    <section className="person-reservations"><h3>Torneos</h3>{participations.length === 0 ? <p className="field-help">No hay participaciones registradas.</p> : <ul>{participations.map((item) => <li key={item.id}><strong>{item.tournamentName}</strong> · {item.categoryName} ({item.modality === 'singles' ? 'Singles' : 'Dobles'}){item.partnerName ? ` · Pareja: ${item.partnerName}` : ''} <span>{item.status === 'completed' ? 'Finalizado' : item.status === 'fixture_generated' ? 'En curso' : 'Inscripto'}</span></li>)}</ul>}</section>
     {loadingReservations ? <p className="field-help">Cargando reservas vinculadas…</p> : <>{reservationList(upcoming, 'Próximas reservas')}{reservationList(previous, 'Reservas anteriores')}</>}
   </section></div>
 }
@@ -69,6 +71,7 @@ export function PeoplePanel({ client, club, canManageMemberships }: PeoplePanelP
   const [detail, setDetail] = useState<ClubPerson | null>(null)
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loadingReservations, setLoadingReservations] = useState(false)
+  const [participations, setParticipations] = useState<TournamentParticipation[]>([])
 
   const load = async (searchTerm = search) => {
     setStatus('loading')
@@ -93,6 +96,30 @@ export function PeoplePanel({ client, club, canManageMemberships }: PeoplePanelP
       if (!cancelled) { setReservations(error ? [] : (data ?? []) as Reservation[]); setLoadingReservations(false) }
     }
     void loadReservations()
+    return () => { cancelled = true }
+  }, [client, club.id, detail])
+  useEffect(() => {
+    if (!detail) return
+    let cancelled = false
+    const loadParticipations = async () => {
+      const { data: memberships } = await client.from('tournament_entry_members').select('entry_id, category_id, person_name_snapshot').eq('club_id', club.id).eq('person_id', detail.id)
+      if (cancelled || !memberships?.length) { if (!cancelled) setParticipations([]); return }
+      const entryIds = memberships.map((item) => item.entry_id as string)
+      const categoryIds = [...new Set(memberships.map((item) => item.category_id as string))]
+      const [{ data: entryRows }, { data: categoryRows }] = await Promise.all([
+        client.from('tournament_entries').select('id, display_name').in('id', entryIds),
+        client.from('tournament_categories').select('id, tournament_id, name, modality, status').in('id', categoryIds),
+      ])
+      if (cancelled) return
+      const tournamentIds = [...new Set((categoryRows ?? []).map((item) => item.tournament_id as string))]
+      const { data: tournamentRows } = tournamentIds.length ? await client.from('tournaments').select('id, name').in('id', tournamentIds) : { data: [] }
+      if (cancelled) return
+      const entriesById = new Map((entryRows ?? []).map((item) => [item.id as string, item.display_name as string]))
+      const categoriesById = new Map((categoryRows ?? []).map((item) => [item.id as string, item]))
+      const tournamentsById = new Map((tournamentRows ?? []).map((item) => [item.id as string, item.name as string]))
+      setParticipations(memberships.map((item) => { const category = categoriesById.get(item.category_id as string) as { tournament_id: string; name: string; modality: string; status: string } | undefined; const entryName = entriesById.get(item.entry_id as string) ?? ''; return { id: item.entry_id as string, tournamentName: category ? tournamentsById.get(category.tournament_id) ?? 'Torneo' : 'Torneo', categoryName: category?.name ?? 'Categoría', modality: category?.modality ?? 'singles', partnerName: category?.modality === 'doubles' ? entryName.split(' / ').filter((name) => name !== item.person_name_snapshot).join(' / ') || null : null, status: category?.status ?? 'open' } }))
+    }
+    void loadParticipations()
     return () => { cancelled = true }
   }, [client, club.id, detail])
   const membershipByPerson = useMemo(() => new Map(memberships.map((membership) => [membership.person_id, membership])), [memberships])
@@ -126,6 +153,6 @@ export function PeoplePanel({ client, club, canManageMemberships }: PeoplePanelP
     {feedback && <p className="form-success" role="status">{feedback}</p>}
     {status === 'loading' ? <p className="calendar-loading" role="status">Cargando jugadores…</p> : status === 'error' ? <p className="form-error" role="alert">{feedback}</p> : <div className="people-list">{visiblePeople.length === 0 ? <p className="screen-message">No encontramos jugadores con esos criterios.</p> : visiblePeople.map((person) => { const membership = membershipByPerson.get(person.id); return <button className="person-row" type="button" key={person.id} onClick={() => setDetail(person)}><span><strong>{person.full_name}</strong>{person.phone && <small>{person.phone}</small>}</span><span className="person-badges"><em className={person.active ? 'person-state active' : 'person-state'}>{person.active ? 'Activo' : 'Inactivo'}</em><em className={`membership-state ${membership?.status ?? 'none'}`}>{membershipLabel(membership)}</em></span></button> })}</div>}
     {editor && <PersonEditor person={editor === 'new' ? undefined : editor} onClose={() => setEditor(null)} onSave={savePerson} />}
-    {detail && <PersonDetail client={client} club={club} person={detail} membership={selectedMembership} reservations={reservations} timezone={club.timezone} loadingReservations={loadingReservations} canManageMemberships={canManageMemberships} onClose={() => setDetail(null)} onEdit={() => { setDetail(null); setEditor(detail) }} onMembershipChange={(nextStatus) => void changeMembership(detail, selectedMembership, nextStatus)} />}
+    {detail && <PersonDetail client={client} club={club} person={detail} membership={selectedMembership} reservations={reservations} participations={participations} timezone={club.timezone} loadingReservations={loadingReservations} canManageMemberships={canManageMemberships} onClose={() => setDetail(null)} onEdit={() => { setDetail(null); setEditor(detail) }} onMembershipChange={(nextStatus) => void changeMembership(detail, selectedMembership, nextStatus)} />}
   </section>
 }
