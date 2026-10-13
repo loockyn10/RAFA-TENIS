@@ -15,6 +15,9 @@
 - [ ] Ejecutar `supabase/verification/sprint-06-tennis-school-checks.sql` y validar Sprint 6 desde escritorio y celular: profesor, alumnos, cupos, agenda compartida, recurrencia, cancelación, aislamiento y roles.
 - [ ] Confirmar el historial remoto de Sprint 6 indicado como pendiente en esta documentación antes de aplicar `20261013060000_tournaments.sql`; no reaplicar migraciones históricas.
 - [ ] Ejecutar `supabase/verification/sprint-07-tournaments-checks.sql` con usuarios de dos clubes: fixture 4/6/8, BYE, duplicados, avances, W.O., campeón, permisos y choques partido↔reserva/clase/bloqueo.
+- [ ] **Bug Sprint 07:** al generar fixture en el entorno desplegado se informa `new row for relation "tournament_matches" violates check constraint "tournament_matches_next_target"`. Investigar/corregir en etapa de bugs; no considerar generación de fixture verificada.
+- [ ] Aplicar manualmente `20261013070000_canteen.sql` solo después de confirmar el historial remoto de migraciones anteriores; no editar ni reaplicar migraciones históricas.
+- [ ] Ejecutar `supabase/verification/sprint-08-canteen-checks.sql` con owner/admin, staff y dos clubes: catálogo, ventas inmediata/pendiente, precio histórico, pagos parciales, idempotencia, anulación, RLS y concurrencia.
 
 ## P1/P2 (no tomar ahora)
 - [ ] Confirmar con Rafa importe inicial, día de vencimiento y criterio operativo de emisión mensual antes de habilitar cuotas en el club.

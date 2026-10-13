@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Club, ClubMembershipRecord, ClubPerson, Reservation } from '../../types/domain'
 import { isoToDateAndTime } from '../reservations/reservationUtils'
 import { MemberAccount } from '../fees/FinancePanel'
+import { PersonCanteenAccount } from '../canteen/CanteenPanel'
 
 type PeoplePanelProps = { client: SupabaseClient; club: Club; canManageMemberships: boolean }
 type Filter = 'all' | 'active-members' | 'non-members' | 'inactive'
@@ -55,6 +56,7 @@ function PersonDetail({ client, club, person, membership, reservations, particip
     {canManageMemberships && <div className="membership-actions">{membership?.status === 'active' ? <button className="secondary-button" type="button" onClick={() => onMembershipChange('inactive')}>Desactivar membresía</button> : <button type="button" onClick={() => onMembershipChange('active')}>{membership ? 'Activar membresía' : 'Convertir en socio'}</button>}</div>}
     <div className="person-detail-actions"><button className="secondary-button" type="button" onClick={onEdit}>Editar jugador</button></div>
     <MemberAccount client={client} club={club} membership={membership} canManage={canManageMemberships} />
+    <PersonCanteenAccount client={client} club={club} personId={person.id} />
     <section className="person-reservations"><h3>Torneos</h3>{participations.length === 0 ? <p className="field-help">No hay participaciones registradas.</p> : <ul>{participations.map((item) => <li key={item.id}><strong>{item.tournamentName}</strong> · {item.categoryName} ({item.modality === 'singles' ? 'Singles' : 'Dobles'}){item.partnerName ? ` · Pareja: ${item.partnerName}` : ''} <span>{item.status === 'completed' ? 'Finalizado' : item.status === 'fixture_generated' ? 'En curso' : 'Inscripto'}</span></li>)}</ul>}</section>
     {loadingReservations ? <p className="field-help">Cargando reservas vinculadas…</p> : <>{reservationList(upcoming, 'Próximas reservas')}{reservationList(previous, 'Reservas anteriores')}</>}
   </section></div>

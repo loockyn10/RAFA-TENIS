@@ -80,6 +80,12 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - El fixture es eliminación directa 2–32; los BYE avanzan al siguiente partido sin crear un partido ficticio de primera ronda. Registrar resultado valida que el ganador participe, bloquea correcciones cuando existen rondas posteriores finalizadas y avanza una única vez.
 - Un partido programado crea/edita una `reservations` `occupation_type='tournament_match'` exclusivamente por RPC, cubierta por la exclusión GiST existente. Staff puede programar, cancelar programación y cargar resultados; no crea ni modifica estructura. No hay `service_role` en React.
 
+### Sprint 8 — cantina
+- `canteen_categories` y `canteen_products` pertenecen a un club; los productos activos tienen precio de venta entero en centavos y nunca se borran desde el cliente. Owner/admin gestiona catálogo; staff solo lo consulta.
+- `canteen_sales`, `canteen_sale_items` y `canteen_sale_payments` distinguen operación, ítems históricos y dinero recibido. El total se calcula en `create_canteen_sale` desde los precios vigentes de los productos; React solo envía IDs y cantidades.
+- `create_canteen_sale` es atómica e idempotente por `(club_id, client_request_id)`. Una venta pendiente exige `club_people` del mismo club; `record_canteen_sale_payment` bloquea la venta antes de comprobar saldo, evitando sobrepagos concurrentes.
+- Solo owner/admin puede anular una venta confirmada sin pagos, con motivo y auditoría. RLS permite operación y lectura de cantina a owner/admin/staff dentro de su club, pero no expone cuotas sociales a staff.
+
 ## Operación e infraestructura
 - `.env.example` con nombres de variables públicas sin credenciales reales; `.env.local` ignorado.
 - Ninguna migración creada equivale a aplicada; distinguir verificado local/remoto/producción.

@@ -100,6 +100,18 @@ export type MembershipDue = {
 
 export type PaymentMethod = 'cash' | 'bank_transfer' | 'mercado_pago' | 'other'
 
+export type CanteenCategory = { id: string; club_id: string; name: string; active: boolean; created_at: string; updated_at: string }
+export type CanteenProduct = { id: string; club_id: string; category_id: string; name: string; sale_price_cents: number; active: boolean; created_at: string; updated_at: string }
+export type CanteenSale = {
+  id: string; club_id: string; customer_person_id: string | null; total_cents: number; status: 'confirmed' | 'voided'
+  client_request_id: string; created_at: string; created_by: string; voided_at: string | null; voided_by: string | null; void_reason: string | null
+}
+export type CanteenSaleItem = { id: string; club_id: string; sale_id: string; product_id: string; product_name_snapshot: string; quantity: number; unit_price_cents: number; created_at: string }
+export type CanteenSalePayment = {
+  id: string; club_id: string; sale_id: string; amount_cents: number; payment_date: string; payment_method: PaymentMethod
+  reference: string | null; notes: string | null; created_at: string; created_by: string
+}
+
 export type MembershipDuePayment = {
   id: string
   club_id: string

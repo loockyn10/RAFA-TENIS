@@ -77,3 +77,9 @@
 **Motivo:** preservar historial, evitar duplicados/avances incoherentes y mantener una única protección GiST para reserva, bloqueo, clase y partido.
 **Consecuencia:** owner/admin modifica estructura; staff programa y registra resultados. No hay zonas, ranking, siembra ni corrección de cuadros avanzados.
 **Estado:** migración e interfaz Sprint 7 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.
+
+## D014 — Cantina con ventas inmutables y saldo derivado
+**Decisión:** usar catálogo por club, ventas confirmadas con ítems/precios históricos y pagos separados por venta. El saldo de cantina se deriva de `total_cents - pagos`; no se reutilizan cuotas ni se guarda un saldo mutable como fuente de verdad.
+**Motivo:** permitir una venta inmediata anónima, consumos pendientes atribuibles por ID y cobros parciales sin que una variación de precio reescriba la historia.
+**Consecuencia:** confirmar una venta se hace exclusivamente mediante RPC atómica e idempotente; pending exige persona del mismo club, sobrepagos se rechazan con lock y una anulación solo es posible sin pagos, con motivo auditado. Stock, fiscalización, caja formal y devoluciones quedan fuera.
+**Estado:** migración e interfaz Sprint 8 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.

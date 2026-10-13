@@ -14,7 +14,7 @@
 | P1 | **8** | Portal del profesor, si se acuerda | Política de acceso docente y privacidad |
 | P1 | **7** | Torneos, categorías, inscripciones, fixtures y resultados | Implementado localmente; requiere aplicar/verificar migración 7 |
 | P2 | **10** | Eventos y noticias del club | Alcance eventos |
-| P2 | **11** | Cantina, ventas y cargos informales + caja básica | Política económica acordada |
+| P1 | **08** | Cantina: catálogo, ventas rápidas, consumos pendientes y pagos por venta | Implementado localmente; falta aplicar/verificar migración 8 |
 | Later | — | Rankings, estadísticas, check-in opcional, tiendas de apps | Demanda real |
 
 Cada sprint acaba con tests, documentación y verificación acorde a su alcance. **No son fechas comprometidas.** Los números son el nuevo orden propuesto, no las numeraciones del ZIP de origen.
