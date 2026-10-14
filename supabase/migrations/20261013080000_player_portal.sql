@@ -275,12 +275,78 @@ end;
 $$;
 
 create or replace function public.player_tournaments(p_club_id uuid)
-returns jsonb language plpgsql security definer set search_path = pg_catalog, public
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
 as $$
-declare v_person_id uuid;
+declare
+  v_person_id uuid;
 begin
   v_person_id := private.assert_portal_access(p_club_id);
-  return coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'name', t.name, 'description', t.description, 'starts_on', t.starts_on, 'ends_on', t.ends_on, 'status', t.status, 'categories', coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'name', c.name, 'modality', c.modality, 'status', c.status, 'matches', coalesce((select jsonb_agg(jsonb_build_object('id', tm.id, 'round_number', tm.round_number, 'position', tm.position, 'entry_one', e1.display_name, 'entry_two', e2.display_name, 'winner', ew.display_name, 'status', tm.status, 'score_text', tm.score_text) order by tm.round_number, tm.position) from public.tournament_matches tm left join public.tournament_entries e1 on e1.id = tm.entry_one_id left join public.tournament_entries e2 on e2.id = tm.entry_two_id left join public.tournament_entries ew on ew.id = tm.winner_entry_id where tm.category_id = c.id), '[]'::jsonb))) order by c.name) from public.tournament_categories c where c.tournament_id = t.id), '[]'::jsonb)) order by t.starts_on desc) from public.tournaments t where t.club_id = p_club_id), '[]'::jsonb);
+
+  return coalesce(
+    (
+      select jsonb_agg(
+        jsonb_build_object(
+          'id', t.id,
+          'name', t.name,
+          'description', t.description,
+          'starts_on', t.starts_on,
+          'ends_on', t.ends_on,
+          'status', t.status,
+          'categories',
+          coalesce(
+            (
+              select jsonb_agg(
+                jsonb_build_object(
+                  'id', c.id,
+                  'name', c.name,
+                  'modality', c.modality,
+                  'status', c.status,
+                  'matches',
+                  coalesce(
+                    (
+                      select jsonb_agg(
+                        jsonb_build_object(
+                          'id', tm.id,
+                          'round_number', tm.round_number,
+                          'position', tm.position,
+                          'entry_one', e1.display_name,
+                          'entry_two', e2.display_name,
+                          'winner', ew.display_name,
+                          'status', tm.status,
+                          'score_text', tm.score_text
+                        )
+                        order by tm.round_number, tm.position
+                      )
+                      from public.tournament_matches tm
+                      left join public.tournament_entries e1
+                        on e1.id = tm.entry_one_id
+                      left join public.tournament_entries e2
+                        on e2.id = tm.entry_two_id
+                      left join public.tournament_entries ew
+                        on ew.id = tm.winner_entry_id
+                      where tm.category_id = c.id
+                    ),
+                    '[]'::jsonb
+                  )
+                )
+                order by c.name
+              )
+              from public.tournament_categories c
+              where c.tournament_id = t.id
+            ),
+            '[]'::jsonb
+          )
+        )
+        order by t.starts_on desc
+      )
+      from public.tournaments t
+      where t.club_id = p_club_id
+    ),
+    '[]'::jsonb
+  );
 end;
 $$;
 

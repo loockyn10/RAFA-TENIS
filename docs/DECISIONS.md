@@ -89,3 +89,9 @@
 **Motivo:** una ficha no equivale a cuenta digital y nombres/contactos no demuestran identidad. El portal necesita datos propios sin heredar permisos de `club_staff`.
 **Consecuencia:** una cuenta puede tener una ficha por club y participar en varios clubes; una cuenta que también es staff cambia explícitamente de experiencia. La reserva online valida configuración y límites en PostgreSQL, con GiST como defensa final. La dirección email de contacto no modifica Auth.
 **Estado:** migración e interfaz Sprint 09 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.
+
+## D017 — Estabilización del fixture de torneos (Sprint 10A)
+**Decisión:** corregir `generate_tournament_fixture` y `record_tournament_match_result` en una migración nueva, conservando `tournament_matches_next_target` (un destino exige partido y casillero a la vez; la final no tiene destino). La generación crea cada partido con su destino ya definido y verifica `inscripciones - 1` partidos; el resultado exige ambos participantes y compara el ganador explícitamente (sin `NOT IN` con NULL). Se agregan garantías de tabla: ganador participante y finalizado con ambos participantes (ambas `NOT VALID`), casillero siguiente único y un trigger que exige misma categoría/ronda inmediata y participantes de la categoría.
+**Motivo:** el error provenía de la función (cuadro de una sola ronda), no de la constraint; relajarla habría ocultado datos inconsistentes. Las constraints `NOT VALID` no bloquean instalaciones con filas generadas por el código anterior y no se regeneran fixtures existentes.
+**Consecuencia:** se elimina el bloqueo por "rondas posteriores finalizadas" (rompía cuadros con BYE); el avance sigue protegido por el casillero ocupado y el estado del partido siguiente.
+**Estado:** migración versionada y verificada en PostgreSQL local descartable; no aplicada ni verificada en Supabase remoto.

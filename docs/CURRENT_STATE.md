@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-13 (Sprint 09, implementación local)
+# CURRENT_STATE.md — 2026-10-14 (Sprint 10A, estabilización de torneos; sobre Sprint 09 local)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -35,6 +35,9 @@
 - El usuario informó haber verificado manualmente: inicio de sesión, acceso owner, seis canchas, edición y persistencia tras recargar contra el proyecto Supabase.
 - En Sprint 8 finalizaron correctamente `pnpm typecheck`, `pnpm lint`, `pnpm test` (32 pruebas) y `pnpm build`. El build emitió la advertencia de bundle JavaScript superior a 500 kB; no se alteró el alcance para resolverla.
 - En Sprint 09 finalizaron correctamente `pnpm typecheck`, `pnpm lint`, `pnpm test` (33 pruebas) y `pnpm build`. El build conserva esa advertencia de bundle; no se amplió el alcance para resolverla.
+- Sprint 10A (torneos): causa del error `tournament_matches_next_target` reproducida en PostgreSQL 17 local: con 2 inscripciones `generate_tournament_fixture` insertaba la final con `next_match_id` NULL y `next_slot` 1 (3, 4, 5, 6, 8 y 16 ya funcionaban). Además se reprodujeron dos defectos en `record_tournament_match_result` (ganador ajeno/partido sin rival aceptado; ronda 1 bloqueada tras jugar una ronda 2 entre pases libres). Corrección: `supabase/migrations/20261014010000_fix_tournament_fixture.sql`.
+- Sprint 10A en PostgreSQL 17 local descartable (clúster temporal con stubs mínimos de Supabase, sin Docker; `supabase/verification/run-sprint-10a-local.sh`): 1778 verificaciones OK (cuadros de 2 a 32 inscripciones jugados hasta el campeón con W.O., dobles de 2/3/7/8/16/32, generación duplicada, ganadores inválidos, BYE jugado primero, torneo multi-categoría, constraints, permisos/RLS entre dos clubes, anon) y concurrencia con dos sesiones (una sola generación). La migración se aplicó sobre datos generados con las funciones anteriores: huella de fixtures idéntica y fixtures legados siguen siendo jugables. El control negativo (mismo guion sin la migración) falla con el error reportado. Esto **no** es Supabase real: no se probó PostgREST, sesiones JWT reales ni las políticas del proyecto desplegado.
+- Sprint 10A: `pnpm typecheck`, `pnpm lint`, `pnpm test` (66 pruebas, 12 archivos) y `pnpm build` pasaron. El build conserva la advertencia de bundle >500 kB.
 - Las verificaciones locales no equivalen a pruebas remotas de PostgreSQL/RLS.
 - No se ejecutaron pruebas de RLS, exclusión GiST, atomicidad o concurrencia contra PostgreSQL/Supabase durante este sprint.
 - Sprint 7 pendiente de ejecutar remotamente: migración, RLS, RPC, fixture, avances y superposiciones de partidos contra Supabase real.
@@ -48,16 +51,17 @@
 - Sprint 6: **migración versionada localmente, no aplicada remotamente**.
 - Sprint 7: **migración versionada localmente, no aplicada remotamente**.
 - Sprint 8: **migración versionada localmente, no aplicada remotamente**.
-- Sprint 09: **migración versionada localmente, no aplicada remotamente**. No se pudo inspeccionar el historial remoto desde el repositorio; confirmar primero el estado 01–08.
+- Sprint 09: **migración versionada localmente, no aplicada remotamente**. No se pudo inspeccionar el historial remoto desde el repositorio; confirmar primero el estado 01–08. Hay además `20261014000000_fix_player_invitation_crypto.sql` y cambios locales sin commit en `20261013080000_player_portal.sql` (ajenos a Sprint 10A, preservados).
+- Sprint 10A: `20261014010000_fix_tournament_fixture.sql` **versionada localmente, no aplicada remotamente**. El bug de producción **no está resuelto hasta aplicarla y recorrer un torneo completo**. Solo toca objetos de torneos (migración 06); no depende de 07–10.
 - Exclusión temporal entre reservas/bloqueos/clases, RLS, funciones de series, personas/socios y garantías financieras contra Supabase real: **pendientes de verificación reproducible**.
 
 ## Contradicción detectada
 La arquitectura previa proyectaba una entidad `players`, pero las migraciones existentes no la creaban. Sprint 4 crea `club_people` como entidad real para evitar confundir una proyección documental con un esquema aplicado. No se hizo commit ni push.
 
-El pedido de Sprint 08 informa que Sprint 07 fue desplegado y que al generar fixture aparece `tournament_matches_next_target`; la documentación previa aún lo indicaba como no aplicado remotamente. Se registra el fallo como bug pendiente y la generación de fixture no se considera verificada. El roadmap histórico llama Sprint 7 al portal, pero el pedido actual lo define como Sprint 09.
+El pedido de Sprint 08 informa que Sprint 07 fue desplegado y que al generar fixture aparece `tournament_matches_next_target`; la documentación previa aún lo indicaba como no aplicado remotamente. Se registra el fallo como bug pendiente. Sprint 10A identificó la causa reproducible (categoría de 2 inscripciones) y versionó la corrección, pero sigue pendiente aplicarla y verificarla en el entorno desplegado. No se sabe cuántas inscripciones tenía la categoría que falló: si eran 3 o más, esa falla concreta no queda explicada y debe re-investigarse con el mensaje exacto tras aplicar la migración. El roadmap histórico llama Sprint 7 al portal, pero el pedido actual lo define como Sprint 09.
 
 ## No implementado
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
 ## Próximo trabajo
-Confirmar en Supabase el historial de Sprint 2–8, aplicar Sprint 09 solo después de esa comprobación y ejecutar el guion nuevo con usuarios de dos clubes. Luego validar portal, agenda administrativa y reservas desde PC y celular.
+Confirmar en Supabase el historial de Sprint 2–8, aplicar `20261014010000_fix_tournament_fixture.sql` y recorrer un torneo completo (torneo, inscripciones abiertas, una categoría de 2 inscripciones y otra de 6, fixture, programación, W.O., resultados hasta campeón; repetir en dobles). Aplicar Sprint 09 solo después de comprobar el historial y ejecutar el guion nuevo con usuarios de dos clubes. Luego validar portal, agenda administrativa y reservas desde PC y celular.
