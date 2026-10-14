@@ -1,7 +1,7 @@
 import { AuthProvider, useAuth } from './auth/AuthProvider'
 import type { ReactNode } from 'react'
 import { LoginScreen } from './auth/LoginScreen'
-import { AdminPanel } from './features/admin/AdminPanel'
+import { AccessRouter } from './auth/AccessRouter'
 import { supabase, supabaseConfiguration } from './lib/supabase'
 
 function AppContent() {
@@ -15,7 +15,7 @@ function AppContent() {
     return <AppFrame><LoginScreen /></AppFrame>
   }
 
-  return <AppFrame><AdminPanel user={user} /></AppFrame>
+  return <AppFrame><AccessRouter user={user} /></AppFrame>
 }
 
 

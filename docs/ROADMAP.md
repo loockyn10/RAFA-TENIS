@@ -10,7 +10,7 @@
 | P1 | **5** | Cuotas y pagos manuales | Implementado localmente; requiere aplicar/verificar migraciones 2–5 |
 | P1 | **6** | Profesores, alumnos y clases en agenda única | Implementado localmente; requiere aplicar/verificar migraciones 2–6 |
 | P0 | **Piloto** | Piloto con Rafa en PC/móvil y ajustes operativos | Sprints 1–5 aplicados y verificados |
-| P1 | **7** | Portal del jugador / PWA autogestión | Política anticipación/cancelación/cupos |
+| P1 | **09** | Portal del jugador / PWA autogestión | Implementado localmente; requiere confirmar/aplicar migraciones previas y verificar RLS/concurrencia |
 | P1 | **8** | Portal del profesor, si se acuerda | Política de acceso docente y privacidad |
 | P1 | **7** | Torneos, categorías, inscripciones, fixtures y resultados | Implementado localmente; requiere aplicar/verificar migración 7 |
 | P2 | **10** | Eventos y noticias del club | Alcance eventos |

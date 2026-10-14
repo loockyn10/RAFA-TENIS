@@ -43,6 +43,12 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - No filtrar teléfonos, notas, cuotas ni consumos a vistas públicas de torneos.
 - Validación frontend mejora UX, **no reemplaza** constraints ni autorización backend.
 
+### Sprint 09 — portal de jugador
+- `club_person_auth_links` une una sola ficha y una sola cuenta por club, conservando que Auth y ficha sean conceptos distintos. `player_invitations` guarda únicamente SHA-256 del código aleatorio, vencimiento, uso y revocación.
+- Las funciones del portal validan `auth.uid()`, vínculo activo y club antes de devolver perfil, cuotas, reservas, disponibilidad o torneos. Las tablas privadas no ganan políticas amplias para jugadores; las consultas salen por RPC con JSON acotado.
+- `create_player_reservation` toma un lock asesorado por persona, comprueba configuración, cancha, hora local, duración y límite, y deja la exclusión GiST como defensa final frente a solapes. Solo su creador puede cancelar desde el portal y dentro del plazo configurado.
+- `club_online_booking_settings` inicia sin fila/habilitación: owner/admin debe habilitarla de forma explícita. Sus valores iniciales son configurables, no reglas de negocio confirmadas.
+
 ### Sprint 1 — acceso y canchas
 - `clubs`, `club_staff` y `courts` están definidos en una migración versionada. Las membresías se identifican por `(club_id, auth_user_id)` y roles `owner`, `admin`, `staff`.
 - RLS permite al usuario autenticado leer solo sus propias membresías, sus clubes y sus canchas. Solo `owner` y `admin` pueden actualizar los campos configurables de una cancha. No hay políticas de inserción, baja ni modificación de membresías desde el cliente.

@@ -11,6 +11,42 @@ export type ClubMembership = {
   role: ClubRole
 }
 
+export type PlayerClubAccess = {
+  club_id: string
+  club_name: string
+  timezone: string
+  person_id: string
+  full_name: string
+  membership_status: ClubMembershipStatus | null
+}
+
+export type OnlineBookingSettings = {
+  enabled: boolean
+  opens_at: string
+  closes_at: string
+  max_advance_days: number
+  allowed_durations_minutes: number[]
+  max_active_reservations: number
+  cancellation_lead_minutes: number
+  configured: boolean
+}
+
+export type PlayerReservation = {
+  id: string
+  court_name: string
+  starts_at: string
+  ends_at: string
+  status: 'confirmed' | 'cancelled'
+  can_cancel: boolean
+}
+
+export type PlayerAvailabilityCourt = {
+  id: string
+  name: string
+  display_order: number
+  occupied: { starts_at: string; ends_at: string; kind: OccupationType }[]
+}
+
 export type Court = {
   id: string
   club_id: string

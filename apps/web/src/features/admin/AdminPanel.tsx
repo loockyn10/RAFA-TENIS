@@ -8,11 +8,12 @@ import { FinancePanel } from '../fees/FinancePanel'
 import { SchoolPanel } from '../school/SchoolPanel'
 import { TournamentPanel } from '../tournaments/TournamentPanel'
 import { CanteenPanel } from '../canteen/CanteenPanel'
+import { PlayerAccessPanel } from '../player/PlayerAccessPanel'
 import type { Club, ClubMembership, ClubRole, Court } from '../../types/domain'
 
 type MembershipRow = { club_id: string; role: ClubRole }
 
-export function AdminPanel({ user }: { user: User }) {
+export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPlayerPortal?: () => void }) {
   const { client, signOut } = useAuth()
   const [memberships, setMemberships] = useState<ClubMembership[]>([])
   const [clubs, setClubs] = useState<Club[]>([])
@@ -21,7 +22,7 @@ export function AdminPanel({ user }: { user: User }) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [error, setError] = useState<string | null>(null)
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const [section, setSection] = useState<'home' | 'reservations' | 'school' | 'tournaments' | 'people' | 'fees' | 'canteen' | 'courts'>('home')
+  const [section, setSection] = useState<'home' | 'reservations' | 'school' | 'tournaments' | 'people' | 'fees' | 'canteen' | 'courts' | 'playerAccess'>('home')
   const [requestedLessonId, setRequestedLessonId] = useState<string | null>(null)
   const [lessonCreation, setLessonCreation] = useState<{ courtId: string; date: string; startsAt: string } | null>(null)
   const [requestedTournamentReservationId, setRequestedTournamentReservationId] = useState<string | null>(null)
@@ -125,7 +126,7 @@ export function AdminPanel({ user }: { user: User }) {
     <div className="admin-layout">
       <header className="admin-header">
         <div><p className="eyebrow">Panel administrativo</p><h1>{title}</h1><p className="user-email">{user.email ?? 'Cuenta autenticada'}</p></div>
-        <button className="secondary-button" type="button" onClick={() => void closeSession()} disabled={isSigningOut}>{isSigningOut ? 'Cerrando…' : 'Cerrar sesión'}</button>
+        <div className="header-actions">{onOpenPlayerPortal && <button className="secondary-button" type="button" onClick={onOpenPlayerPortal}>Mi portal</button>}<button className="secondary-button" type="button" onClick={() => void closeSession()} disabled={isSigningOut}>{isSigningOut ? 'Cerrando…' : 'Cerrar sesión'}</button></div>
       </header>
       {error && <p className="form-error" role="alert">{error}</p>}
       {memberships.length === 0 ? <NoClubAccess /> : <>
@@ -139,6 +140,7 @@ export function AdminPanel({ user }: { user: User }) {
             <button className={section === 'tournaments' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('tournaments')}>Torneos</button>
             <button className={section === 'people' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('people')}>Jugadores</button>
             {canManage && <button className={section === 'fees' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('fees')}>Cuotas</button>}
+            {canManage && <button className={section === 'playerAccess' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('playerAccess')}>Portal</button>}
             <button className={section === 'canteen' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('canteen')}>Cantina</button>
             <button className={section === 'courts' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => setSection('courts')}>Canchas</button>
           </nav>
@@ -148,6 +150,7 @@ export function AdminPanel({ user }: { user: User }) {
           {section === 'tournaments' && <TournamentPanel client={client} club={selectedClub} courts={courts} canManage={canManage} requestedReservationId={requestedTournamentReservationId} onRequestedReservationHandled={() => setRequestedTournamentReservationId(null)} />}
           {section === 'people' && <PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} />}
           {section === 'fees' && <FinancePanel client={client} club={selectedClub} canManage={canManage} />}
+          {section === 'playerAccess' && canManage && <PlayerAccessPanel client={client} club={selectedClub} />}
           {section === 'canteen' && <CanteenPanel client={client} club={selectedClub} canManageCatalog={canManage} />}
           {section === 'courts' && <CourtList courts={courts} canManage={canManage} onSave={saveCourt} />}
         </>}

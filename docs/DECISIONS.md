@@ -83,3 +83,9 @@
 **Motivo:** permitir una venta inmediata anónima, consumos pendientes atribuibles por ID y cobros parciales sin que una variación de precio reescriba la historia.
 **Consecuencia:** confirmar una venta se hace exclusivamente mediante RPC atómica e idempotente; pending exige persona del mismo club, sobrepagos se rechazan con lock y una anulación solo es posible sin pagos, con motivo auditado. Stock, fiscalización, caja formal y devoluciones quedan fuera.
 **Estado:** migración e interfaz Sprint 8 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.
+
+## D015 — Portal del jugador por vínculo autorizado e invitación de un uso
+**Decisión:** vincular Auth con `club_people` por club exclusivamente al canjear una invitación individual hasheada. Exponer perfil, cuotas, torneos, disponibilidad y reservas mediante RPC acotadas; no ampliar acceso directo a tablas privadas.
+**Motivo:** una ficha no equivale a cuenta digital y nombres/contactos no demuestran identidad. El portal necesita datos propios sin heredar permisos de `club_staff`.
+**Consecuencia:** una cuenta puede tener una ficha por club y participar en varios clubes; una cuenta que también es staff cambia explícitamente de experiencia. La reserva online valida configuración y límites en PostgreSQL, con GiST como defensa final. La dirección email de contacto no modifica Auth.
+**Estado:** migración e interfaz Sprint 09 versionadas localmente; no aplicadas ni verificadas contra Supabase remoto.

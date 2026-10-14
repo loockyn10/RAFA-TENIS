@@ -19,7 +19,7 @@ describe('AuthProvider', () => {
     expect(screen.queryByRole('heading', { name: 'Canchas' })).not.toBeInTheDocument()
   })
 
-  it('bloquea el panel cuando la sesión no tiene membresía', async () => {
+  it('pide canjear una invitación cuando la sesión no tiene accesos', async () => {
     const client = {
       auth: {
         getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'user-without-club', email: 'sinclub@rafa.test' } } }, error: null }),
@@ -27,11 +27,12 @@ describe('AuthProvider', () => {
         signOut: vi.fn(),
       },
       from: vi.fn().mockReturnValue({ select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) }),
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
     } as unknown as SupabaseClient
 
     render(<AuthProvider client={client}><AppContent /></AuthProvider>)
 
-    expect(await screen.findByText('No tenés acceso administrativo a ningún club.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Canjeá tu invitación.' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Canchas' })).not.toBeInTheDocument()
   })
 })

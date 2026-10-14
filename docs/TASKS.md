@@ -18,6 +18,9 @@
 - [ ] **Bug Sprint 07:** al generar fixture en el entorno desplegado se informa `new row for relation "tournament_matches" violates check constraint "tournament_matches_next_target"`. Investigar/corregir en etapa de bugs; no considerar generación de fixture verificada.
 - [ ] Aplicar manualmente `20261013070000_canteen.sql` solo después de confirmar el historial remoto de migraciones anteriores; no editar ni reaplicar migraciones históricas.
 - [ ] Ejecutar `supabase/verification/sprint-08-canteen-checks.sql` con owner/admin, staff y dos clubes: catálogo, ventas inmediata/pendiente, precio histórico, pagos parciales, idempotencia, anulación, RLS y concurrencia.
+- [ ] Confirmar el historial remoto real de migraciones 01–08 antes de aplicar `20261013080000_player_portal.sql`; no reaplicar ni editar migraciones históricas.
+- [ ] Ejecutar `supabase/verification/sprint-09-player-portal-checks.sql` con owner/admin, jugadores de dos clubes y cuenta sin vínculo: invitaciones/canje, RLS, cuotas propias, disponibilidad privada, límites, solapes concurrentes, cancelación y perfil.
+- [ ] Validar manualmente el portal Sprint 09 desde celular y escritorio: registro/confirmación de email según Supabase, cambio admin↔jugador, selector de clubes, reserva visible en agenda administrativa y reglas online configurables.
 
 ## P1/P2 (no tomar ahora)
 - [ ] Confirmar con Rafa importe inicial, día de vencimiento y criterio operativo de emisión mensual antes de habilitar cuotas en el club.
