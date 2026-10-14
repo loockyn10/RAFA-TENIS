@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Club, ClubFeeSettings, ClubMembershipRecord, ClubPerson, MembershipDue, MembershipDuePayment, PaymentMethod } from '../../types/domain'
+import { UNCERTAIN_RESULT_MESSAGE } from '../../lib/idempotency'
+import { recordDuePayment } from './recordDuePayment'
 import { balanceCents, dueStatus, firstDayOfMonth, formatArs, isOverdue, monthLabel, paidCents, parseArsToCents, todayInClubTimezone } from './feeUtils'
 
 const dueFields = 'id, club_id, membership_id, period, amount_cents, due_date, created_at, created_by'
@@ -23,15 +25,19 @@ export function PaymentDialog({ due, payments, onClose, onSave }: PaymentDialogP
   const [notes, setNotes] = useState('')
   const [feedback, setFeedback] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [uncertain, setUncertain] = useState(false)
+  const sendingRef = useRef(false)
   const balance = balanceCents(due, payments)
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (sendingRef.current) return
     const amountCents = parseArsToCents(amount)
     if (!amountCents) return setFeedback('Indicá un importe mayor a cero.')
     if (amountCents > balance) return setFeedback('El importe supera el saldo pendiente.')
-    setSaving(true); setFeedback(null)
+    sendingRef.current = true; setSaving(true); setFeedback(null)
     const error = await onSave({ amountCents, paymentDate, paymentMethod, reference, notes })
-    setSaving(false)
+    sendingRef.current = false; setSaving(false)
+    setUncertain(error === UNCERTAIN_RESULT_MESSAGE)
     if (error) setFeedback(error)
   }
   return <div className="reservation-modal-backdrop" role="presentation"><section className="reservation-modal" role="dialog" aria-modal="true" aria-labelledby="payment-title">
@@ -44,7 +50,7 @@ export function PaymentDialog({ due, payments, onClose, onSave }: PaymentDialogP
       <label>Referencia <span className="optional-label">(opcional)</span><input value={reference} onChange={(event) => setReference(event.target.value)} /></label>
       <label>Observaciones <span className="optional-label">(opcional)</span><textarea rows={2} value={notes} onChange={(event) => setNotes(event.target.value)} /></label>
       {feedback && <p className="form-error" role="alert">{feedback}</p>}
-      <div className="modal-actions"><button className="secondary-button" type="button" disabled={saving} onClick={onClose}>Volver</button><button type="submit" disabled={saving}>{saving ? 'Registrando…' : 'Registrar pago'}</button></div>
+      <div className="modal-actions"><button className="secondary-button" type="button" disabled={saving} onClick={onClose}>Volver</button><button type="submit" disabled={saving}>{saving ? 'Registrando…' : uncertain ? 'Reintentar pago' : 'Registrar pago'}</button></div>
     </form>
   </section></div>
 }
@@ -99,9 +105,9 @@ export function MemberAccount({ client, club, membership, canManage }: { client:
   const total = dues.reduce((sum, due) => sum + balanceCents(due, payments), 0)
   const recordPayment = async (payload: { amountCents: number; paymentDate: string; paymentMethod: PaymentMethod; reference: string; notes: string }) => {
     if (!payingDue) return 'No encontramos la cuota seleccionada.'
-    const { error } = await client.rpc('record_membership_due_payment', { p_club_id: club.id, p_due_id: payingDue.id, p_amount_cents: payload.amountCents, p_payment_date: payload.paymentDate, p_payment_method: payload.paymentMethod, p_reference: payload.reference || null, p_notes: payload.notes || null })
-    if (error) return 'No pudimos registrar el pago. Puede que el saldo haya cambiado; recargá e intentá nuevamente.'
-    setPayingDue(null); setFeedback('Pago registrado.'); await load(); return null
+    const result = await recordDuePayment(client, club, payingDue, payload)
+    if (!result.ok) return result.message
+    setPayingDue(null); setFeedback(result.recovered ? 'El pago ya estaba registrado: lo recuperamos sin duplicarlo.' : 'Pago registrado.'); await load(); return null
   }
   return <section className="member-account"><h3>Estado de cuenta</h3>{loading ? <p className="field-help">Cargando cuotas…</p> : <><p className="account-total">Saldo total: <strong>{formatArs(total)}</strong></p>{feedback && <p className="form-success" role="status">{feedback}</p>}{dues.length === 0 ? <p className="field-help">No hay cuotas emitidas para este socio.</p> : <div className="account-dues">{dues.map((due) => <div key={due.id}><DueRow due={due} payments={payments} timezone={club.timezone} onPayment={() => setPayingDue(due)} onDetail={() => setDetailDue(due)} /></div>)}</div>}</>}{payingDue && <PaymentDialog due={payingDue} payments={payments} onClose={() => setPayingDue(null)} onSave={recordPayment} />}{detailDue && <DueDetailDialog client={client} club={club} due={detailDue} payments={payments} onClose={() => setDetailDue(null)} onRefresh={load} />}</section>
 }
@@ -187,9 +193,9 @@ export function FinancePanel({ client, club, canManage }: { client: SupabaseClie
   }
   const recordPayment = async (payload: { amountCents: number; paymentDate: string; paymentMethod: PaymentMethod; reference: string; notes: string }) => {
     if (!payingDue) return 'No encontramos la cuota seleccionada.'
-    const { error } = await client.rpc('record_membership_due_payment', { p_club_id: club.id, p_due_id: payingDue.id, p_amount_cents: payload.amountCents, p_payment_date: payload.paymentDate, p_payment_method: payload.paymentMethod, p_reference: payload.reference || null, p_notes: payload.notes || null })
-    if (error) return 'No pudimos registrar el pago. El saldo puede haber cambiado; recargá e intentá nuevamente.'
-    setPayingDue(null); setFeedback('Pago registrado.'); await loadDues(period); return null
+    const result = await recordDuePayment(client, club, payingDue, payload)
+    if (!result.ok) return result.message
+    setPayingDue(null); setFeedback(result.recovered ? 'El pago ya estaba registrado: lo recuperamos sin duplicarlo.' : 'Pago registrado.'); await loadDues(period); return null
   }
   if (!canManage) return <section className="configuration-card"><p className="eyebrow">Acceso restringido</p><h2>Las cuotas son privadas.</h2><p className="intro">Solo propietario y administradores pueden consultar información financiera.</p></section>
   return <section className="fees-section" aria-labelledby="fees-title"><div className="section-heading"><div><p className="eyebrow">Administración</p><h2 id="fees-title">Cuotas</h2></div><p>Cuotas mensuales y pagos manuales. No se generan cobros automáticamente.</p></div>

@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-14 (Sprint 10C.2 UX/UI administrativo; sobre 10B.1/10A/09)
+# CURRENT_STATE.md — 2026-10-14 (Sprint 10B.2 idempotencia financiera; sobre 10C.2/10B.1/10A/09)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -73,7 +73,15 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 - Hasta aplicarlas: el canje de invitaciones sigue roto en remoto, `anon` conserva EXECUTE en RPC administrativas (si la plataforma lo concede), `courts.club_id` sigue editable y el portal sigue mostrando saldos incorrectos.
 - Supabase real (informado por el usuario, solo lectura): pgcrypto en `extensions`; `rpc_accesibles_anon` = 1; 0 tablas sin RLS; 0 permisos de tabla para anon; 11 migraciones registradas; 0 cuotas sobrepagadas; 0 reservas con cancha de otro club. No coincide con el PostgreSQL local emulado (13 funciones para anon): causa no determinada desde el repo (`supabase/verification/sec-02-anon-rpc-diagnostic.sql`).
 - Evidencia local (PostgreSQL 17.10 descartable, **no Supabase**; `supabase/verification/run-sprint-10b1-local.sh`): control negativo 55/150 incumplidas en el estado previo; con las migraciones 150/150 y concurrencia OK (canje, anulaciones). `run-security-audit-local.sh` quedó sin el parche hipotético de canje. `pnpm typecheck`, `lint`, `test` (66) y `build` OK.
-- Abiertos: SEC-05 (Sprint 10B.2) y SEC-06…SEC-13; oráculo de existencia de UUID (solo autenticados) en `cancel_player_reservation` y RPC de torneos.
+- Abiertos: SEC-06…SEC-13 (SEC-05 pasó a Sprint 10B.2, ver más abajo); oráculo de existencia de UUID (solo autenticados) en `cancel_player_reservation` y RPC de torneos.
+
+## Sprint 10B.2 — SEC-05: idempotencia de ventas y pagos (en repositorio; detalle en `docs/SECURITY_AUDIT.md` §10)
+- **Causa:** el frontend de cantina generaba una clave nueva por clic; el servidor solo comparaba la clave (devolvía la venta vieja con otro carrito) y los pagos de cuota/cantina no tenían clave.
+- **Migración nueva, versionada y NO aplicada en Supabase:** `20261014060000_idempotent_financial_operations.sql` (columnas `canteen_sales.request_hash` y `client_request_id` en ambos pagos, `UNIQUE (club_id, client_request_id)`, `create_canteen_sale` con hash de contenido y candado por clave, `record_membership_due_payment` / `record_canteen_sale_payment` con clave obligatoria; se eliminan las firmas de pago de 7 argumentos). Aplicar **junto con** el frontend. No altera registros históricos.
+- **Garantía:** misma clave + mismo contenido/usuario/club ⇒ un único resultado (también en concurrencia); otro contenido u otro usuario ⇒ 23505; clave nueva ⇒ operación nueva aunque coincidan monto, cliente o productos.
+- **Frontend:** `lib/idempotency.ts` (clave por intención, persistida en sessionStorage solo como `{clave, huella, hora}`, recuperación de la fila por su clave ante resultados inciertos, timeout de 20 s), `CanteenPanel.tsx`, `FinancePanel.tsx` y `fees/recordDuePayment.ts`: guarda contra doble envío, carrito conservado ante errores inciertos, «Reintentar…», «Vaciar» como inicio explícito de una venta nueva. Sin cambios visuales.
+- **Evidencia local (PostgreSQL 17.10 descartable, no Supabase):** control negativo (SEC-05 reproducido en el estado previo 2/2); con la migración 113/113 verificaciones y 23/23 de concurrencia (`supabase/verification/run-sprint-10b2-local.sh`). Frontend: `pnpm test` 111 pruebas (45 nuevas, con mocks), `lint`, `build` y `tsc -p tsconfig.app.json` OK.
+- **Pendiente:** aplicar en Supabase y verificar (`sprint-10b2-remote-readonly-checks.sql` + pruebas manuales de §10.7). Fuera de alcance: anulaciones no idempotentes, ventas anteriores a la migración (sin hash), funciones no financieras.
 
 ## Sprint 10C.1 — diseño y navegación (local)
 - Se incorporó una capa de tokens CSS para la identidad visual: verde institucional, verde oscuro, amarillo de acento, terracota, superficies cálidas, espaciado, radios, sombras y estados de foco.
@@ -94,5 +102,5 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
 ## Próximo trabajo
-Aplicar en Supabase (orden: frontend → migraciones 20261014020000…050000) y correr `supabase/verification/sprint-10b1-remote-readonly-checks.sql` y las pruebas manuales de su pie, en un proyecto descartable si es posible. Antes, identificar con `sec-02-anon-rpc-diagnostic.sql` la función SECURITY DEFINER que `anon` ejecuta hoy en remoto. Luego, lo siguiente de esta sección:
+Aplicar en Supabase (orden: frontend → migraciones 20261014020000…050000; después `20261014060000` **junto con** el frontend de 10B.2, ver `SECURITY_AUDIT.md` §10.7) y correr `supabase/verification/sprint-10b1-remote-readonly-checks.sql` y las pruebas manuales de su pie, en un proyecto descartable si es posible. Antes, identificar con `sec-02-anon-rpc-diagnostic.sql` la función SECURITY DEFINER que `anon` ejecuta hoy en remoto. Luego, lo siguiente de esta sección:
 Confirmar en Supabase el historial de Sprint 2–8, aplicar `20261014010000_fix_tournament_fixture.sql` y recorrer un torneo completo (torneo, inscripciones abiertas, una categoría de 2 inscripciones y otra de 6, fixture, programación, W.O., resultados hasta campeón; repetir en dobles). Aplicar Sprint 09 solo después de comprobar el historial y ejecutar el guion nuevo con usuarios de dos clubes. Luego validar portal, agenda administrativa y reservas desde PC y celular.

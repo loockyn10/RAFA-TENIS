@@ -2,7 +2,9 @@
 
 Fecha: 2026-10-14 · Base: commit `1e99a8a` (Sprint 10A), árbol limpio al iniciar · Auditoría **sin correcciones**: no se modificó código de producción ni migraciones.
 
-> **Actualización Sprint 10B.1:** SEC-01…SEC-04 están corregidos **en el repositorio** (4 migraciones nuevas, ver §9); **no aplicados ni verificados en Supabase real**. SEC-05…SEC-13 siguen abiertos.
+> **Actualización Sprint 10B.1:** SEC-01…SEC-04 están corregidos **en el repositorio** (4 migraciones nuevas, ver §9); **no aplicados ni verificados en Supabase real**. SEC-05…SEC-13 seguían abiertos en ese momento.
+
+> **Actualización Sprint 10B.2:** SEC-05 está corregido **en el repositorio** (migración `20261014060000_idempotent_financial_operations.sql` + frontend de Cuotas y Cantina, ver §10); **no aplicado ni verificado en Supabase real**. SEC-06…SEC-13 siguen abiertos.
 
 ## 1. Alcance y método
 
@@ -94,6 +96,7 @@ Staff puede crear/editar **bloqueos**, programar partidos y cargar resultados, y
 5. **Consecuencia:** ventas/cobros duplicados difíciles de detectar y sin anulación de pagos en cantina.
 6. **Corrección:** el cliente genera la clave una vez por carrito y la renueva solo tras éxito o cambio del carrito; el servidor guarda un hash del payload y rechaza (22023/23505) la reutilización con otro contenido; agregar clave idempotente opcional a los pagos. **Migración:** sí (columnas/funciones) + cambio de frontend.
 7. **Verificar:** test: dos llamadas con la misma clave y mismo payload → una fila; mismo clave/otro payload → error; test de UI que reutiliza la clave tras un error de red simulado.
+8. **Estado (Sprint 10B.2):** corregido en el repositorio; no aplicado en Supabase. Ver §10.
 
 ### SEC-06 — BAJO — `player_tournaments` expone borradores/cancelados y nombres de todos los participantes
 `20261013080000_player_portal.sql:277-351` filtra solo por club (`where t.club_id = p_club_id`), sin estado ni acotamiento. (B) Un jugador A1 ve `Torneo borrador A`. Muestra `display_name` de cualquier inscripción a todo jugador vinculado (puede incluir menores) y el JSON crece sin límite. **Corrección:** limitar a `registration_open/in_progress/completed` recientes y decidir con Rafa si los nombres son públicos para jugadores. Migración: sí (create or replace).
@@ -191,3 +194,59 @@ Supabase real informó `rpc_accesibles_anon = 1`; el PostgreSQL local, con privi
 - Oráculo de existencia de UUID solo para usuarios **autenticados** (no anon) en `cancel_player_reservation` y las RPC de torneos (`update_tournament`, `create_tournament_category`, `create_tournament_entry`, `delete_tournament_entry`, `generate_tournament_fixture`, `schedule/cancel_tournament_match`, `record_tournament_match_result`): se leen antes de validar. Riesgo bajo (UUID no adivinables, exige sesión); no se tocó para no reescribir RPC grandes fuera de alcance.
 - El privilegio PUBLIC por defecto sobre funciones nuevas sigue vigente: cada migración debe seguir haciendo `revoke … from public` explícito (la migración solo quita el default de `anon` en `public`). `anon` mantiene EXECUTE sobre las funciones de extensiones (`btree_gist` en `public`; no son `SECURITY DEFINER`).
 - Sin cambios: privilegios por defecto de tablas; SEC-05 (Sprint 10B.2), SEC-06…SEC-13.
+
+
+## 10. Sprint 10B.2 — corrección de SEC-05 (idempotencia de ventas y pagos; repositorio; **pendiente de aplicar y verificar en Supabase**)
+
+### 10.1 Causa exacta
+1. **Frontend (cantina):** `confirmSale` generaba `crypto.randomUUID()` en **cada clic**. Si la venta se confirmaba en PostgreSQL pero la respuesta se perdía, reintentar enviaba otra clave y creaba **otra venta con otro cobro**.
+2. **`create_canteen_sale`:** solo comparaba la clave. Con la misma clave y otro carrito devolvía **en silencio la venta anterior**; además `p_client_request_id` tenía como valor por defecto `gen_random_uuid()`, de modo que omitirla desactivaba la idempotencia sin avisar.
+3. **`record_membership_due_payment` y `record_canteen_sale_payment`:** no tenían ninguna clave. Dos envíos idénticos creaban dos pagos mientras quedara saldo (el bloqueo de fila solo evitaba el sobrepago).
+4. **Frontend (cuotas y pagos de cantina):** sin identidad de operación ni guarda contra el doble envío más allá del botón deshabilitado.
+
+### 10.2 Solución implementada
+**Migración nueva** `supabase/migrations/20261014060000_idempotent_financial_operations.sql` (no modifica migraciones aplicadas ni registros históricos):
+- `canteen_sales.request_hash` (sha256 del contenido normalizado: club, cliente, medio de pago e ítems ordenados por producto; **sin precios ni fechas**). Los pagos reciben `client_request_id uuid`. Restricciones `UNIQUE (club_id, client_request_id)` en ventas y en ambos tipos de pago (`NULL` no choca: los registros anteriores quedan intactos).
+- `create_canteen_sale` (misma firma): la clave es obligatoria (`null` ⇒ 22023); valida y normaliza los ítems en memoria (se eliminó la tabla temporal), calcula el hash, toma un `pg_advisory_xact_lock` por `(club, clave)` y busca la clave **dentro del club ya autorizado**. Si existe: mismo hash **y** mismo `created_by` ⇒ devuelve la venta original; cualquier otra cosa ⇒ **23505**. El reintento se resuelve **antes** de validar el catálogo (una venta se puede recuperar aunque un producto se haya desactivado).
+- `record_membership_due_payment` y `record_canteen_sale_payment`: nuevo `p_client_request_id` (obligatorio). Mismo patrón (candado por clave → bloqueo de la cuota/venta → búsqueda de la clave → comparación de **todos** los campos: cuota/venta, importe, fecha, método, referencia, observaciones y usuario → devolver o 23505) y **el reintento se resuelve antes de validar el saldo**: reenviar el pago que saldó la cuota devuelve el original en lugar de fallar por sobrepago. Un pago nuevo (clave nueva) sigue sujeto al control de sobrepago con bloqueo de fila.
+- Se eliminaron las firmas de 7 argumentos de ambos pagos (dejarlas habría mantenido un camino sin idempotencia). `SECURITY DEFINER`, `search_path = pg_catalog, public`, `auth.uid()`/pertenencia al club/permisos **antes** de tocar datos, `revoke … from public, anon` y `grant … to authenticated` explícitos sobre las firmas nuevas (no se debilita 10B.1).
+
+**Frontend** (solo Cuotas y Cantina; diseño sin cambios):
+- `apps/web/src/lib/idempotency.ts` (nuevo): clave **por intención** (`claimOperationKey`), atada a una huella corta del contenido; se conserva en reintentos, doble clic y **recarga de la página** (sessionStorage: solo `{clave, huella, hora}`, sin importes ni nombres; vence a las 24 h; si el almacenamiento falla queda en memoria) y se descarta únicamente tras una confirmación (`releaseOperationKey`). `runIdempotentOperation` clasifica el resultado: *ok* / *rechazado por el servidor* (nada registrado; la clave se conserva) / *conflicto 23505* (la clave se descarta) / *incierto* (red, corte, timeout de 20 s, respuesta ilegible) — ante un resultado incierto **consulta la fila por su clave** (RLS por club) antes de rendirse.
+- `CanteenPanel.tsx`: guarda `useRef` contra el doble envío, clave estable por carrito, carrito conservado ante errores inciertos, mensajes dentro del diálogo, botón «Reintentar confirmación/pago», «Vaciar» como decisión explícita de una venta nueva. Mismo tratamiento para los pagos de consumos pendientes.
+- `fees/recordDuePayment.ts` (nuevo, compartido por `MemberAccount` y `FinancePanel`) y `PaymentDialog`: misma identidad estable, guarda de doble envío y «Reintentar pago».
+
+### 10.3 Garantías de idempotencia (y su alcance)
+- **Misma clave + mismo contenido + mismo usuario + mismo club ⇒ un único resultado persistido**, también con envíos simultáneos (candado por clave + `UNIQUE`). La garantía definitiva está en PostgreSQL; la UI solo evita generar claves nuevas por accidente.
+- **Misma clave + otro contenido, o de otro usuario ⇒ 23505**, sin registrar nada. La clave es única **por club**: otro club puede usar el mismo UUID de forma independiente y nunca recibe filas ajenas (el candado, la búsqueda y la restricción incluyen `club_id`; la autorización ocurre antes).
+- **Clave nueva ⇒ operación nueva**, aunque coincidan productos, importes, cliente o cuota. No se deduplica por contenido.
+- Un reintento de un pago/venta **anulado** devuelve el registro original (anulado) y **no crea otro**; un cobro nuevo requiere una clave nueva.
+- Los pagos inmediatos de una venta no llevan clave propia: los protege la de la venta (misma transacción).
+
+### 10.4 Casos que siguen fuera de alcance (registrados en `docs/TASKS.md`)
+- **Ventas anteriores a 10B.2** (`request_hash` NULL): su contenido no se puede verificar, por lo que reutilizar su clave se rechaza (23505). Los pagos anteriores no tienen clave. No se reescribió ningún registro histórico.
+- **Anulaciones** (`void_*`): un reintento tras una respuesta perdida recibe «ya fue anulada» (estado final correcto; no es idempotente en el sentido de devolver el resultado).
+- **Recarga + carrito distinto**: la identidad persistida solo se reutiliza si el carrito/pago reconstruido es idéntico; si el usuario reconstruye otro, es otra operación (el riesgo es de decisión humana, no de la clave). El carrito en sí no se persiste (no hay sincronización offline).
+- Sin garantías para operaciones no financieras (reservas, clases, torneos) ni para cobros automáticos/Mercado Pago (no existen).
+- Un tiempo de espera de 20 s en el cliente puede cortar la espera de una operación que el servidor aún está procesando: el reintento con la misma clave espera el candado y devuelve el resultado; por eso se consulta la fila antes de declarar un fallo.
+
+### 10.5 Migraciones creadas
+`20261014060000_idempotent_financial_operations.sql` (única). Requiere `20261013040000` y `20261013070000`; independiente de las migraciones 10B.1 (que además otorgaban `EXECUTE` sobre las firmas que esta migración reemplaza: por eso debe aplicarse **después** de ellas).
+**Contrato:** el frontend nuevo exige las firmas nuevas (pagos con `p_client_request_id`). Aplicar migración y frontend **juntos**; entre ambos pasos el frontend anterior no puede registrar pagos (error de función inexistente: no duplica nada).
+
+### 10.6 Resultados reales de las pruebas
+**PostgreSQL 17.10 local descartable en un clúster temporal (sin Docker; NO es Supabase):** `supabase/verification/run-sprint-10b2-local.sh` — estado previo (≤ 10B.1) → datos históricos con las RPC anteriores → control negativo → migración → verificaciones → concurrencia con dos sesiones.
+- **Control negativo (estado previo):** SEC-05 reproducido — la misma clave con otra cantidad devolvió `OK` y el mismo pago enviado dos veces quedó registrado dos veces (2 de 2).
+- **Con la migración: 113 de 113 verificaciones** (`sprint-10b2-checks.sql`): estructura/privilegios (6), venta normal (3), doble envío (2), respuesta perdida (2), reintento (2), contenido distinto — cantidad, producto extra, medio de pago, pendiente↔pagada, otra persona (6), venta nueva con los mismos productos (2), pago de cuota (1), pago duplicado — importe, método, fecha, referencia y otra cuota (9), dos pagos legítimos del mismo importe y reenvío del pago que saldó la cuota (3), pago de cantina (1), reintento de pago de cantina (6), sobrepagos (6), aislamiento entre clubes y RLS de la consulta de recuperación (13), permisos/anon/usuario sin club/otro usuario/clave obligatoria/validaciones previas (22), anulaciones (10), datos históricos con huella md5 idéntica y saldos (19).
+- **Concurrencia (23 comprobaciones, 0 fallas):** doble envío simultáneo de la misma venta (1 venta, 1 cobro, ambas sesiones reciben el mismo id), misma clave con contenido distinto (1 gana, el otro 23505), dos ventas distintas con el mismo contenido (2 ventas), reintento simultáneo de pago de cuota y de cantina (1 pago), dos pagos con claves distintas que exceden el saldo (solo 1 entra), reintento simultáneo con la anulación (sin deadlock; 1 pago, anulado).
+- Guiones anteriores con la base limitada a ≤ 10B.1 (su contrato no cambia): `run-sprint-10b1-local.sh` 150/150 y concurrencia OK; `run-sprint-10a-local.sh` OK; `run-security-audit-local.sh` mantiene los 7 resultados ya documentados (incluido #143 = SEC-05, esperado en ese estado). Se ajustaron ambos `run-*` para no aplicar migraciones posteriores a 10B.1.
+- **Frontend (Vitest, mocks — no ejercen PostgreSQL):** `pnpm test` 111 pruebas / 16 archivos (66 previas + 45 nuevas: `idempotency` 20, `recordDuePayment` 8, `PaymentDialog` 2, `CanteenPanel` 15): venta normal, doble clic, respuesta perdida y reintento con la misma clave, recuperación de una venta/pago ya confirmados, clave nueva tras confirmar / tras cambiar el carrito / tras «Vaciar», rechazos y 23505, persistencia tras recarga y sin sessionStorage, vencimiento a 24 h y timeout. Verificado con mutaciones: sin la guarda `useRef` falla la prueba de doble clic; con clave nueva por intento fallan 12 pruebas.
+- `pnpm typecheck`, `pnpm lint` y `pnpm build`: OK (el build conserva la advertencia de JavaScript > 500 kB). Nota: `pnpm typecheck` (`tsc --noEmit` sobre un `tsconfig` con `references`) no comprueba archivos; el chequeo real lo hacen `tsc -p tsconfig.app.json --noEmit` (limpio) y `tsc -b` dentro de `pnpm build`.
+
+### 10.7 Pasos para aplicar y verificaciones pendientes en Supabase (**nada de esto se ejecutó**)
+1. Aplicar antes 10B.1 si todavía no está (ver §9.3), y confirmar el historial real de migraciones.
+2. Correr `supabase/verification/sprint-10b2-remote-readonly-checks.sql` (SELECT): antes, la parte de estructura da `f`; después, todo `t`.
+3. En una ventana corta, **aplicar `20261014060000` y desplegar el frontend** (juntos).
+4. Volver a correr el guion de solo lectura (todo `t`; revisar las filas `info_*`).
+5. Pruebas manuales en un proyecto descartable con dos clubes: (a) venta pagada y pendiente; (b) doble clic; (c) con las herramientas del navegador cortar la red justo al confirmar (o responder desde el servidor y cortar la respuesta), reintentar y comprobar **una sola** venta/pago; (d) recargar durante un resultado incierto y repetir el mismo carrito/pago; (e) dos pagos legítimos del mismo importe; (f) sobrepago; (g) anulación y reintento; (h) usuario del club B sin acceso a datos del club A.
+No marcar SEC-05 como cerrado hasta registrar ese resultado.

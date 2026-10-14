@@ -27,7 +27,12 @@ TMP="${TMPDIR:-/tmp}"
 echo "== Creando base descartable $DB en $PGHOST:$PGPORT"
 "${PSQL[@]}" -d postgres -c "drop database if exists $DB with (force)" -c "create database $DB" 2>&1 | grep -v NOTICE
 "${PSQL[@]}" -d "$DB" -f "$HERE/local-supabase-stub.sql" 2>&1 | grep -v NOTICE
-for f in "$MIGRATIONS"/*.sql; do "${PSQL[@]}" -d "$DB" -f "$f" >/dev/null 2>&1 || { echo "FALLO al aplicar $f"; exit 1; }; done
+# Matriz de la auditoría 10B: valida el estado hasta Sprint 10B.1. Sprint 10B.2 cambia las firmas de los pagos
+# (clave idempotente obligatoria); se verifica con run-sprint-10b2-local.sh.
+for f in "$MIGRATIONS"/*.sql; do
+  b="$(basename "$f")"; [[ "${b:0:14}" > "20261014050000" ]] && continue
+  "${PSQL[@]}" -d "$DB" -f "$f" >/dev/null 2>&1 || { echo "FALLO al aplicar $f"; exit 1; }
+done
 
 echo "== Matriz de roles (security-audit-dynamic.sql)"
 psql -X -d "$DB" -f "$HERE/security-audit-dynamic.sql" 2>&1 | sed -n '/RESUMEN POR/,$p'

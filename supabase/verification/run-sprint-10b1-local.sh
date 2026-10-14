@@ -32,6 +32,8 @@ for f in "$MIGRATIONS"/*.sql; do
   b="$(basename "$f")"; skip=0
   for n in "${NEW[@]}"; do [[ "$b" == "$n" ]] && skip=1; done
   [[ $skip == 1 ]] && continue
+  # Sprint 10B.2 cambia las firmas de los pagos: este guion valida el estado de 10B.1, no lo aplica.
+  [[ "${b:0:14}" > "20261014050000" ]] && continue
   "${PSQL[@]}" -d "$DB" -f "$f" >/dev/null 2>"$TMP/mig10b1.err" || { echo "FALLO al aplicar $b"; cat "$TMP/mig10b1.err"; exit 1; }
 done
 
