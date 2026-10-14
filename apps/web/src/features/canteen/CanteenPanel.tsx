@@ -117,15 +117,15 @@ export function CanteenPanel({ client, club, canManageCatalog }: { client: Supab
   }
   const saveProduct = async (form: ProductForm) => {
     const price = parseArsToCents(form.price); if (!form.name.trim() || !form.categoryId || price === null) return setFeedback('Completá nombre, categoría y un precio válido mayor a cero.')
-    const payload = { club_id: club.id, name: form.name.trim(), category_id: form.categoryId, sale_price_cents: price, active: form.active }
-    const result = productEditor === 'new' ? await client.from('canteen_products').insert(payload) : await client.from('canteen_products').update(payload).eq('id', productEditor?.id ?? '').eq('club_id', club.id)
+    const payload = { name: form.name.trim(), category_id: form.categoryId, sale_price_cents: price, active: form.active }
+    const result = productEditor === 'new' ? await client.from('canteen_products').insert({ club_id: club.id, ...payload }) : await client.from('canteen_products').update(payload).eq('id', productEditor?.id ?? '').eq('club_id', club.id)
     if (result.error) return setFeedback(errorText(result.error, 'No pudimos guardar el producto.'))
     setProductEditor(null); await load()
   }
   const saveCategory = async (form: CategoryForm) => {
     if (!form.name.trim()) return setFeedback('Indicá un nombre para la categoría.')
-    const payload = { club_id: club.id, name: form.name.trim(), active: form.active }
-    const result = categoryEditor === 'new' ? await client.from('canteen_categories').insert(payload) : await client.from('canteen_categories').update(payload).eq('id', categoryEditor?.id ?? '').eq('club_id', club.id)
+    const payload = { name: form.name.trim(), active: form.active }
+    const result = categoryEditor === 'new' ? await client.from('canteen_categories').insert({ club_id: club.id, ...payload }) : await client.from('canteen_categories').update(payload).eq('id', categoryEditor?.id ?? '').eq('club_id', club.id)
     if (result.error) return setFeedback(errorText(result.error, 'No pudimos guardar la categoría.'))
     setCategoryEditor(null); await load()
   }

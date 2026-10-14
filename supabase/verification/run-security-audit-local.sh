@@ -11,9 +11,10 @@
 #   2. security-audit-dynamic.sql: matriz de roles (owner/admin/staff/jugadores A y B/sin vínculo/anon, dos clubes).
 #   3. Concurrencia con dos sesiones: pagos de cuota, pagos de cantina, solape de reservas, límite de reservas
 #      online por persona y atomicidad de series.
-#   4. Con un parche HIPOTÉTICO de redeem_player_invitation (solo en esta base descartable; NO se modifica el repo)
-#      se comprueba el comportamiento de canje: un solo uso, concurrencia, vencimiento y revocación.
-# El resultado esperado HOY incluye hallazgos (ver docs/SECURITY_AUDIT.md): el script no falla por ellos.
+#   4. Canje de invitaciones con la función real (desde Sprint 10B.1 ya no se parchea nada): un solo uso,
+#      concurrencia, vencimiento y revocación.
+# Tras las migraciones de Sprint 10B.1 la matriz solo debe dejar la decisión de producto D008 y los hallazgos
+# SEC-06…SEC-13 aún abiertos (ver docs/SECURITY_AUDIT.md): el script no falla por ellos.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -87,20 +88,7 @@ BEFORE="$(q "select (select count(*) from public.reservation_series)||'/'||(sele
 AFTER="$(q "select (select count(*) from public.reservation_series)||'/'||(select count(*) from public.reservations)")"
 verdict "series/reservas antes y después idénticas" "^$BEFORE\$" "$AFTER"
 
-echo "== C6 (parche HIPOTÉTICO de redeem_player_invitation en esta base descartable; el repo NO cambia)"
-q "create or replace function public.redeem_player_invitation(p_code text) returns jsonb language plpgsql security definer set search_path = pg_catalog, public as \$f\$
-declare v_invitation public.player_invitations; v_person public.club_people;
-begin
-  if auth.uid() is null or char_length(trim(coalesce(p_code, ''))) < 32 then raise exception 'No pudimos validar el código de invitación.' using errcode = '22023'; end if;
-  select * into v_invitation from public.player_invitations where token_hash = encode(extensions.digest(trim(p_code), 'sha256'), 'hex') for update;
-  if not found or v_invitation.expires_at <= now() or v_invitation.redeemed_at is not null or v_invitation.revoked_at is not null then raise exception 'No pudimos validar el código de invitación.' using errcode = '22023'; end if;
-  select * into v_person from public.club_people where club_id = v_invitation.club_id and id = v_invitation.person_id for key share;
-  if not found or not v_person.active then raise exception 'No pudimos validar el código de invitación.' using errcode = '22023'; end if;
-  if exists (select 1 from public.club_person_auth_links where club_id = v_invitation.club_id and (person_id = v_invitation.person_id or auth_user_id = auth.uid())) then raise exception 'Esta cuenta o persona ya tiene una vinculación en el club.' using errcode = '23505'; end if;
-  insert into public.club_person_auth_links(club_id, person_id, auth_user_id, created_by) values (v_invitation.club_id, v_invitation.person_id, auth.uid(), v_invitation.created_by);
-  update public.player_invitations set redeemed_at = now(), redeemed_by = auth.uid() where id = v_invitation.id;
-  return jsonb_build_object('club_id', v_invitation.club_id, 'person_id', v_invitation.person_id);
-end; \$f\$" >/dev/null
+echo "== C6: canje de invitaciones con la función REAL del repositorio (migración 20261014020000)"
 q "insert into auth.users(id,email) values ('a0000000-0000-0000-0000-00000000000b','x1@t'),('a0000000-0000-0000-0000-00000000000c','x2@t') on conflict do nothing" >/dev/null
 NEWP="e0000000-0000-0000-0000-0000000000f1"
 q "insert into public.club_people(id,club_id,full_name) values ('$NEWP','$CLUB_A','Invitada concurrente') on conflict do nothing" >/dev/null

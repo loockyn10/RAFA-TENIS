@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-14 (Sprint 10A, estabilización de torneos; sobre Sprint 09 local)
+# CURRENT_STATE.md — 2026-10-14 (Sprint 10B.1, correcciones de seguridad SEC-01…04; sobre Sprint 10A/09)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -68,8 +68,16 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 - Evidencia nueva (PostgreSQL 17 local descartable con privilegios por defecto de Supabase emulados, **no** Supabase real): 144 de 163 comprobaciones de la matriz de roles cumplen la expectativa segura (las 19 restantes están mapeadas a hallazgos) y las 13 pruebas de concurrencia pasan (`supabase/verification/run-security-audit-local.sh`). Sigue pendiente toda verificación contra Supabase real.
 - `pnpm typecheck`, `lint`, `test` (66) y `build` pasaron en Sprint 10B; no se modificó código de producción.
 
+## Correcciones de seguridad — Sprint 10B.1 (en repositorio; detalle en `docs/SECURITY_AUDIT.md` §9)
+- SEC-01…SEC-04 corregidos con 4 migraciones nuevas, **versionadas localmente y NO aplicadas en Supabase**: `20261014020000_fix_redeem_player_invitation_crypto.sql`, `20261014030000_revoke_anon_rpc_and_check_permissions_first.sql`, `20261014040000_restrict_table_privileges.sql`, `20261014050000_fix_player_membership_dues_balance.sql` (independientes entre sí; requieren 01–10A). Un cambio de frontend: `CanteenPanel.tsx` ya no envía `club_id` en los UPDATE de catálogo (desplegar antes o junto con la migración de privilegios).
+- Hasta aplicarlas: el canje de invitaciones sigue roto en remoto, `anon` conserva EXECUTE en RPC administrativas (si la plataforma lo concede), `courts.club_id` sigue editable y el portal sigue mostrando saldos incorrectos.
+- Supabase real (informado por el usuario, solo lectura): pgcrypto en `extensions`; `rpc_accesibles_anon` = 1; 0 tablas sin RLS; 0 permisos de tabla para anon; 11 migraciones registradas; 0 cuotas sobrepagadas; 0 reservas con cancha de otro club. No coincide con el PostgreSQL local emulado (13 funciones para anon): causa no determinada desde el repo (`supabase/verification/sec-02-anon-rpc-diagnostic.sql`).
+- Evidencia local (PostgreSQL 17.10 descartable, **no Supabase**; `supabase/verification/run-sprint-10b1-local.sh`): control negativo 55/150 incumplidas en el estado previo; con las migraciones 150/150 y concurrencia OK (canje, anulaciones). `run-security-audit-local.sh` quedó sin el parche hipotético de canje. `pnpm typecheck`, `lint`, `test` (66) y `build` OK.
+- Abiertos: SEC-05 (Sprint 10B.2) y SEC-06…SEC-13; oráculo de existencia de UUID (solo autenticados) en `cancel_player_reservation` y RPC de torneos.
+
 ## No implementado
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
 ## Próximo trabajo
+Aplicar en Supabase (orden: frontend → migraciones 20261014020000…050000) y correr `supabase/verification/sprint-10b1-remote-readonly-checks.sql` y las pruebas manuales de su pie, en un proyecto descartable si es posible. Antes, identificar con `sec-02-anon-rpc-diagnostic.sql` la función SECURITY DEFINER que `anon` ejecuta hoy en remoto. Luego, lo siguiente de esta sección:
 Confirmar en Supabase el historial de Sprint 2–8, aplicar `20261014010000_fix_tournament_fixture.sql` y recorrer un torneo completo (torneo, inscripciones abiertas, una categoría de 2 inscripciones y otra de 6, fixture, programación, W.O., resultados hasta campeón; repetir en dobles). Aplicar Sprint 09 solo después de comprobar el historial y ejecutar el guion nuevo con usuarios de dos clubes. Luego validar portal, agenda administrativa y reservas desde PC y celular.

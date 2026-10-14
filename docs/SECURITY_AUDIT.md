@@ -2,6 +2,8 @@
 
 Fecha: 2026-10-14 · Base: commit `1e99a8a` (Sprint 10A), árbol limpio al iniciar · Auditoría **sin correcciones**: no se modificó código de producción ni migraciones.
 
+> **Actualización Sprint 10B.1:** SEC-01…SEC-04 están corregidos **en el repositorio** (4 migraciones nuevas, ver §9); **no aplicados ni verificados en Supabase real**. SEC-05…SEC-13 siguen abiertos.
+
 ## 1. Alcance y método
 
 **Auditado (código real del repositorio, no la documentación):** las 11 migraciones `supabase/migrations/` (Sprint 01 → 10A) y `supabase/bootstrap`; todas las funciones `SECURITY DEFINER`, GRANT/REVOKE, políticas RLS y triggers de guarda; `apps/web` (cliente Supabase, sesión, enrutado por rol, manejo de errores, PWA/service worker, variables de entorno); scripts `supabase/verification/*`; historial git de migraciones; `pnpm audit`.
@@ -161,3 +163,31 @@ Orden sugerido, una migración nueva por tema (no editar migraciones aplicadas):
 4. **SEC-05** clave idempotente estable en frontend + hash de payload + clave para pagos.
 5. **SEC-10/11/09/07** límites de datos, estado de torneo, tope de invitaciones y alineación (estas dos últimas requieren decisión de Rafa).
 6. **SEC-12/13** cabeceras en Vercel, política de contraseña/rate limits en Auth, ignorar `supabase/.temp`, convertir los guiones 04–09 en pruebas automáticas contra PostgreSQL local, y reconciliar el historial real de migraciones antes de aplicar nada nuevo.
+
+## 9. Sprint 10B.1 — corrección de SEC-01…SEC-04 (repositorio; **pendiente de aplicar y verificar en Supabase**)
+
+| ID | Estado en repo | Migración nueva (aplicar en este orden; independientes entre sí, todas requieren 01–10A) |
+|---|---|---|
+| SEC-01 | Corregido | `20261014020000_fix_redeem_player_invitation_crypto.sql` — `redeem_player_invitation` con `extensions.digest`; aborta si `extensions.digest(text,text)` no existe. Mismo cuerpo: identidad, vencimiento, revocación, uso único, `FOR UPDATE` (concurrencia), aislamiento por club. |
+| SEC-02 | Corregido | `20261014030000_revoke_anon_rpc_and_check_permissions_first.sql` — `revoke … from public, anon` + `grant … to authenticated` en las 14 RPC; `alter default privileges in schema public revoke execute on functions from anon`; permisos antes de leer en `void_membership_due_payment`, `update_tennis_lesson`, `cancel_tennis_lesson`, `void_canteen_sale` y `revoke_player_invitation` (id inexistente y sin permiso dan el mismo 42501; ya no se bloquean filas de otros clubes). |
+| SEC-03 | Corregido | `20261014040000_restrict_table_privileges.sql` — `clubs`, `club_staff`, `courts`, `canteen_categories`, `canteen_products`: `revoke all` + `select`; `courts` solo `update (name, surface, active, display_order)`; catálogo `insert/update` por columna **sin `club_id` en UPDATE**; trigger `private.prevent_club_id_change` (club_id inmutable incluso para superusuario). **Requiere el cambio de `CanteenPanel.tsx`** (los UPDATE ya no envían `club_id`): desplegar el frontend antes o junto con la migración. |
+| SEC-04 | Corregido | `20261014050000_fix_player_membership_dues_balance.sql` — `paid_cents` y `balance_cents` excluyen pagos anulados (`filter (where voided_at is null)`); no toca datos. |
+
+**Archivos de frontend:** `apps/web/src/features/canteen/CanteenPanel.tsx` (payload de UPDATE sin `club_id`; el INSERT lo conserva).
+
+### 9.1 Diferencia entre el entorno local y Supabase real (SEC-02)
+Supabase real informó `rpc_accesibles_anon = 1`; el PostgreSQL local, con privilegios por defecto de Supabase **emulados** (`local-supabase-stub.sql`), da 13 funciones `SECURITY DEFINER` (+1 envoltorio no `SECURITY DEFINER`). La diferencia indica que los privilegios por defecto del proyecto real no coinciden con lo emulado (hipótesis: el proyecto actual no concede EXECUTE a `anon` en funciones nuevas) o que parte de las 13 no existe/difiere en remoto. **Desde el repo no se puede saber qué función es la remota ni la causa**: puede ser una función de la plataforma o creada a mano. `supabase/verification/sec-02-anon-rpc-diagnostic.sql` (solo lectura) la identifica (propietario, ACL, directa o vía PUBLIC, de extensión o no, del repo o no) y muestra `pg_default_acl`. La migración revoca de `anon` solo las 14 funciones del repo con firma explícita y es inocua si ya no lo tenían; **no revoca a ciegas funciones desconocidas**: si el diagnóstico muestra una que no es del repo, revisarla a mano. Que `migraciones_aplicadas = 11` coincida con el repo no prueba cuáles son: el chequeo M0 de `sprint-10b1-remote-readonly-checks.sql` compara por versión.
+
+### 9.2 Pruebas realizadas (PostgreSQL 17.10 local descartable en clúster temporal, sin Docker; **no es Supabase**)
+`supabase/verification/run-sprint-10b1-local.sh` (seed con RPC reales → control negativo en una copia del estado previo → migraciones sobre esos datos → verificaciones → concurrencia):
+- Control negativo (estado previo): **55 de 150** verificaciones incumplidas (SEC-01 15, SEC-02 10, SEC-03 22, SEC-04 8), es decir, las pruebas detectan los hallazgos.
+- Con las 4 migraciones: **150/150** (SEC-01 35, SEC-02 46, SEC-03 48, SEC-04 21): generación y canje de invitación con vinculación Auth↔persona, segundo canje (misma y otra cuenta), vencida, revocada, persona inactiva, cruce de clubes, anon; anon sin EXECUTE en las 14 RPC y en toda función propia de `public`; authenticated conserva las RPC administrativas y del portal; id inexistente = id ajeno (mismo 42501); `courts.club_id`/`created_at`/INSERT/DELETE rechazados, edición legítima de canchas, `club_id` inmutable para superusuario (trigger); cantina por rol (owner/admin catálogo, staff vende y lee); saldos con pago válido, anulado, parcial, saldado y solo-anulado, paridad con el cálculo administrativo, privacidad de cuotas, huella de importes sin cambios.
+- Concurrencia (2 sesiones): canje simultáneo → 1 ganador y 1 vínculo; anulación simultánea de pago de cuota y de venta de cantina → 1 sola.
+- `run-security-audit-local.sh` (matriz de la auditoría 10B, ya sin el parche hipotético): de 19 resultados fuera de lo seguro quedan 7, todos ajenos a este sprint (D008 y SEC-05/06/07/08/10); las 13 comprobaciones de concurrencia pasan.
+- `pnpm typecheck`, `lint`, `test` (66) y `build`: OK.
+
+### 9.3 Pendiente / riesgos restantes
+- Aplicar las 4 migraciones en Supabase **y** verificar con `sprint-10b1-remote-readonly-checks.sql` (SELECT, apto producción: antes ⇒ falsos donde hay hallazgo, después ⇒ todo `t`) más la lista manual del final de ese archivo (canje real con PostgREST/JWT, anon key, edición de cancha/cantina desde la app) en un proyecto **descartable**. Sin eso el remoto no está validado.
+- Oráculo de existencia de UUID solo para usuarios **autenticados** (no anon) en `cancel_player_reservation` y las RPC de torneos (`update_tournament`, `create_tournament_category`, `create_tournament_entry`, `delete_tournament_entry`, `generate_tournament_fixture`, `schedule/cancel_tournament_match`, `record_tournament_match_result`): se leen antes de validar. Riesgo bajo (UUID no adivinables, exige sesión); no se tocó para no reescribir RPC grandes fuera de alcance.
+- El privilegio PUBLIC por defecto sobre funciones nuevas sigue vigente: cada migración debe seguir haciendo `revoke … from public` explícito (la migración solo quita el default de `anon` en `public`). `anon` mantiene EXECUTE sobre las funciones de extensiones (`btree_gist` en `public`; no son `SECURITY DEFINER`).
+- Sin cambios: privilegios por defecto de tablas; SEC-05 (Sprint 10B.2), SEC-06…SEC-13.
