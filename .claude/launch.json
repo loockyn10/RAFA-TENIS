@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "design-preview",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@rafa-tenis/design-preview", "dev", "--", "--port", "5180", "--strictPort"],
+      "port": 5180
+    },
+    {
+      "name": "design-preview-02",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@rafa-tenis/design-preview", "dev", "--port", "5182", "--strictPort"],
+      "port": 5182
+    }
+  ]
+}

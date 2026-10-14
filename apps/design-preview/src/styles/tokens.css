@@ -1,0 +1,167 @@
+/*
+ * Rafa Tenis — tokens de diseño (DESIGN-01)
+ * Capa 1: paleta cruda. Capa 2: tokens semánticos (lo único que deberían usar los componentes).
+ * Pensados para portarse tal cual a apps/web/src/styles.css cuando se apruebe el diseño.
+ */
+:root {
+  /* ── Paleta: verde club ───────────────────────── */
+  --green-975: #04190f;
+  --green-950: #072a1f;
+  --green-900: #0b3a2b;
+  --green-850: #0e4533;
+  --green-800: #11513c;
+  --green-700: #166247;
+  --green-600: #1c7a56;
+  --green-500: #279467;
+  --green-300: #8fd0a9;
+  --green-200: #c3e6cf;
+  --green-100: #e0f1e5;
+  --green-50: #f0f8f2;
+
+  /* ── Paleta: amarillo pelota ──────────────────── */
+  --ball-500: #e3f03a;
+  --ball-400: #ebf55e;
+  --ball-300: #f2f98f;
+  --ball-100: #fafcd9;
+  --ball-700: #6f7600;
+
+  /* ── Paleta: polvo de ladrillo ────────────────── */
+  --clay-700: #8f3c20;
+  --clay-600: #a94a29;
+  --clay-500: #c45f38;
+  --clay-300: #e3a58a;
+  --clay-100: #f7e3d8;
+  --clay-50: #fbf1eb;
+
+  /* ── Neutros cálidos (cal de línea) ───────────── */
+  --chalk-0: #ffffff;
+  --chalk-50: #faf8f2;
+  --chalk-100: #f4f1e7;
+  --chalk-200: #e9e4d6;
+  --chalk-300: #d7d0bd;
+  --ink-900: #0f2219;
+  --ink-700: #33473d;
+  --ink-600: #4a5d53;
+  --ink-500: #66776e;
+
+  /* ── Estados ──────────────────────────────────── */
+  --red-600: #b8322a;
+  --red-100: #fbe4e1;
+  --amber-700: #8a5a00;
+  --amber-100: #fdf0cf;
+  --blue-700: #1f5f8b;
+  --blue-100: #e1eef7;
+
+  /* ── Semánticos: superficies ──────────────────── */
+  --bg-app: var(--chalk-100);
+  --bg-chrome: var(--green-900);
+  --bg-chrome-raised: var(--green-850);
+  --bg-hero: var(--green-800);
+  --surface: var(--chalk-0);
+  --surface-sunken: var(--chalk-50);
+  --surface-muted: var(--chalk-100);
+  --border: var(--chalk-200);
+  --border-strong: var(--chalk-300);
+
+  /* ── Semánticos: texto ────────────────────────── */
+  --text: var(--ink-900);
+  --text-muted: var(--ink-600);
+  --text-subtle: var(--ink-500);
+  --text-on-dark: #f3f8f4;
+  --text-on-dark-muted: #b7cfc1;
+  --text-on-accent: var(--green-950);
+  --text-link: var(--green-700);
+
+  /* ── Semánticos: acciones ─────────────────────── */
+  --accent: var(--ball-500);
+  --accent-hover: var(--ball-400);
+  --primary: var(--green-700);
+  --primary-hover: var(--green-600);
+  --primary-soft: var(--green-100);
+  --danger: var(--red-600);
+  --danger-soft: var(--red-100);
+  --focus-ring: 0 0 0 3px var(--chalk-0), 0 0 0 6px var(--green-600);
+  --focus-ring-dark: 0 0 0 3px var(--green-900), 0 0 0 6px var(--ball-500);
+
+  /* ── Ocupaciones de cancha (agenda única) ─────── */
+  --occ-reservation-bg: var(--green-100);
+  --occ-reservation-edge: var(--green-600);
+  --occ-reservation-text: var(--green-900);
+  --occ-lesson-bg: var(--ball-100);
+  --occ-lesson-edge: #9aa400;
+  --occ-lesson-text: #3d4200;
+  --occ-match-bg: var(--clay-100);
+  --occ-match-edge: var(--clay-500);
+  --occ-match-text: var(--clay-700);
+  --occ-block-bg: repeating-linear-gradient(135deg, #ece8dc 0 8px, #e2ddcf 8px 16px);
+  --occ-block-edge: #8d8778;
+  --occ-block-text: var(--ink-700);
+
+  /* ── Tipografía ───────────────────────────────── */
+  --font-body: 'Barlow', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', ui-sans-serif, system-ui, sans-serif;
+  --fs-xs: 0.75rem;   /* 12 */
+  --fs-sm: 0.875rem;  /* 14 */
+  --fs-md: 1rem;      /* 16 */
+  --fs-lg: 1.125rem;  /* 18 */
+  --fs-xl: 1.375rem;  /* 22 */
+  --fs-2xl: 1.75rem;  /* 28 */
+  --fs-3xl: 2.25rem;  /* 36 */
+  --fs-4xl: 3rem;     /* 48 */
+  --lh-tight: 1.1;
+  --lh-snug: 1.3;
+  --lh-body: 1.5;
+
+  /* ── Espaciado (base 4) ───────────────────────── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --gutter: 16px;
+
+  /* ── Forma y elevación ────────────────────────── */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+  --shadow-1: 0 1px 2px rgb(11 58 43 / 0.08), 0 1px 1px rgb(11 58 43 / 0.04);
+  --shadow-2: 0 6px 18px -6px rgb(11 58 43 / 0.18), 0 2px 4px rgb(11 58 43 / 0.06);
+  --shadow-3: 0 24px 48px -12px rgb(7 42 31 / 0.35);
+
+  /* ── Medidas de layout ────────────────────────── */
+  --touch: 44px;
+  --topbar-h: 60px;
+  --bottomnav-h: 68px;
+  --sidebar-w: 256px;
+  --rail-w: 88px;
+  --content-max: 1360px;
+
+  /* ── Movimiento ───────────────────────────────── */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+
+  /* ── Capas ────────────────────────────────────── */
+  --z-nav: 30;
+  --z-sheet: 60;
+  --z-toast: 80;
+  --z-proto: 70;
+}
+
+@media (min-width: 768px) {
+  :root { --gutter: 24px; }
+}
+@media (min-width: 1440px) {
+  :root { --gutter: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-med: 0ms; }
+}

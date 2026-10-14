@@ -51,6 +51,14 @@ Auditoría sin correcciones: 0 críticos, 1 alto, 4 medios, 8 bajos. **Sprint 10
 - [x] Sprint 11A: identidad institucional verde, tokens semánticos, encabezado compacto, cuenta agrupada, resumen solo en Inicio y estructura móvil con navegación inferior/safe areas, sin cambios de negocio.
 - [x] Sprint 11B: auditoría UX/UI e implementación local de jerarquía operativa, cuenta sin salto de layout, navegación iconificada, agenda compacta, formularios progresivos de cuotas/canchas, listas y superficies consistentes. Sin cambios de negocio ni backend.
 - [ ] Realizar recorrido visual autenticado de 10C/11A/11B en 360/390/430/768/1024/1440 px: menú Más y Cuenta, cambio Admin/Jugador, agenda multicancha/selector móvil, alta/edición/cancelación en modales, Cantina y cobros, Jugadores, Cuotas, Escuela, Torneos, Canchas, Configuración, foco por teclado, safe areas y ausencia de overflow horizontal. El navegador aislado de este sprint no alcanzó Vite local; requiere un navegador que pueda abrir el entorno de desarrollo o una URL de preview.
+- [x] DESIGN-01: prototipo visual independiente en `apps/design-preview` (React/Vite/TS, datos ficticios, sin Supabase): design system, shell administrativo, Inicio, Reservas, Cantina y portal de jugadores. Ver `apps/design-preview/README.md`.
+- [ ] DESIGN-01: revisión y aprobación del prototipo por el usuario/Rafa antes de cualquier integración en `apps/web`. No se comenzó la integración.
+- [x] DESIGN-02: prototipo completo en `apps/design-preview` — header móvil con escudo centrado, Jugadores y socios, Cuotas y pagos, Escuela, Torneos (cuadro por rondas), Canchas, Configuración del club, Portal/Invitaciones y Acceso (login, registro, canje). Sin integración. Ver `apps/design-preview/README.md`.
+- [ ] DESIGN-02: revisión del usuario/Rafa de los módulos nuevos y del header con escudo (celular real, Safari/iOS y lector de pantalla no probados).
+- [ ] DESIGN-02 (pendiente de decisión): catálogo y anulación de ventas de cantina, modo oscuro y PWA del prototipo siguen sin diseñar.
+- [ ] DESIGN-02 (decisión de producto): «Configuración del club» del prototipo propone datos que hoy no existen en producción (localidad, teléfono de contacto, edición del nombre). Confirmar antes de integrarlos; producción solo tiene reglas online, cuota mensual y canchas.
+- [ ] DESIGN-02 (decisión de producto): el prototipo impide programar clases y partidos en horarios ya pasados y avisa de solapes de profesor; validar con Rafa si coincide con la operación real.
+- [ ] Decidir si se adopta Barlow/Barlow Condensed (Google Fonts) o se autoalojan las fuentes en la PWA real (offline y privacidad).
 
 ## P1/P2 (no tomar ahora)
 - [ ] Confirmar con Rafa importe inicial, día de vencimiento y criterio operativo de emisión mensual antes de habilitar cuotas en el club.
