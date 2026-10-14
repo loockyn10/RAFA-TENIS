@@ -316,3 +316,113 @@ input:focus, select:focus, textarea:focus { border-color: var(--color-primary); 
 @media (min-width: 720px) {
   .mobile-bottom-nav, .mobile-more-menu { display: none !important; }
 }
+
+/* Sprint 10C.2: administrative modules use the same compact, touch-first cards. */
+.people-list, .school-list, .due-list, .account-dues, .sale-list, .entry-list,
+.fee-settings, .fees-controls, .fee-filters, .school-add-coach, .tournament-summary,
+.entry-form, .fixture, .canteen-products, .cart-card {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.people-list, .school-list, .due-list, .account-dues, .sale-list, .entry-list { border-radius: var(--radius-md); }
+.people-controls, .fee-settings, .fees-controls, .fee-filters, .canteen-filters { gap: var(--space-2); }
+.person-row, .school-row, .due-row, .sale-row { min-width: 0; }
+.person-row:focus-visible, .school-row:focus-visible { position: relative; z-index: 1; outline: 3px solid var(--color-primary); outline-offset: -3px; }
+.person-row > span:first-child, .school-row > span, .due-row > div:first-child, .sale-row > div:first-child { min-width: 0; }
+.person-row strong, .school-row strong, .due-row strong, .sale-row strong, .entry-list span { overflow-wrap: anywhere; }
+
+.person-state, .membership-state, .due-status, .sale-status, .court-state, .champion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.65rem;
+  border: 1px solid transparent;
+  letter-spacing: .01em;
+}
+.due-status.paid, .sale-status.paid, .person-state.active, .membership-state.active, .court-state.active, .champion { border-color: #a8cfaf; }
+.due-status.partial, .sale-status.partial { border-color: #d7b65d; }
+.due-status.pending, .sale-status.pending, .membership-state.none { border-color: #bcc9c1; }
+.due-status.overdue, .sale-status.voided { border-color: #e3aaa4; }
+
+.person-detail, .member-account { max-width: 760px; }
+.person-details, .due-amounts, .payment-history { border-radius: var(--radius-sm); }
+.person-reservations, .person-canteen, .member-account { border-color: var(--color-border); }
+.due-amounts { border: 1px solid #b8d8c1; background: var(--color-primary-soft); }
+.payment-history li { border: 1px solid var(--color-border); background: var(--color-surface-muted); }
+.fee-stats > div, .canteen-stats > div { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: 0 5px 14px rgb(23 63 45 / 5%); }
+.fee-stats > div:nth-child(2), .canteen-stats > div:nth-child(2) { border-top: 4px solid var(--color-terracotta); }
+.fee-stats > div:nth-child(3), .canteen-stats > div:nth-child(3) { border-top: 4px solid var(--color-accent); }
+.fee-stats > div:first-child, .canteen-stats > div:first-child { border-top: 4px solid var(--color-primary); }
+
+.school-nav, .tournament-categories { scrollbar-width: thin; }
+.school-nav .nav-button { min-height: 2.7rem; }
+.school-row { border-left: 3px solid transparent; }
+.school-row:has(.person-state.active) { border-left-color: var(--color-primary); }
+.school-add-coach h3, .entry-form h3 { padding-bottom: .15rem; }
+.student-match { min-height: 2.75rem; border-radius: var(--radius-sm); }
+
+.tournament-summary, .fixture, .entry-form { border-radius: var(--radius-md); }
+.tournament-summary { border-top: 4px solid var(--color-primary); }
+.tournament-categories > button { min-height: 3.35rem; border-radius: var(--radius-sm); }
+.entry-list > div { min-height: 3.25rem; }
+.fixture { overflow: hidden; }
+.fixture-rounds { margin: 0 -.2rem; padding: .75rem .2rem 1rem; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-color: var(--color-primary) var(--color-surface-muted); }
+.fixture-round { scroll-snap-align: start; }
+.fixture-round h4 { position: sticky; left: .2rem; padding: .45rem .55rem; border-radius: .5rem; background: var(--color-surface-muted); }
+.match-card { min-height: 8.5rem; border-color: var(--color-border); background: var(--color-surface-muted); }
+.match-card .winner { display: flex; align-items: center; gap: .35rem; color: var(--color-primary-dark); }
+.match-card .winner::before { content: 'Ganador'; padding: .12rem .35rem; border-radius: 99px; background: var(--color-primary-soft); color: var(--color-primary-dark); font-size: .66rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+
+.canteen-section .section-heading { align-items: end; }
+.canteen-products { border-top: 4px solid var(--color-primary); }
+.cart-card { border-top: 4px solid var(--color-terracotta); }
+.product-button { min-height: 6rem; border-radius: var(--radius-sm); }
+.product-button:active:not(:disabled), .quantity-control button:active:not(:disabled) { transform: scale(.98); }
+.cart-card .cart-total { position: relative; color: var(--color-primary-dark); }
+.sale-list { overflow-wrap: anywhere; }
+.sale-row { min-height: 5.25rem; }
+.sale-status { width: fit-content; }
+.catalog-layout .sale-list { align-content: start; }
+
+.brand-mark { display: block; width: 2.75rem; height: 2.75rem; border: 0; border-radius: 0; background: transparent; object-fit: contain; box-shadow: none; }
+
+@media (max-width: 899px) {
+  main { width: min(100% - 1.5rem, 1120px); padding-bottom: calc(5.75rem + env(safe-area-inset-bottom)); }
+  .site-header, footer { width: min(100% - 1.5rem, 1120px); }
+  .admin-workspace { display: block; }
+  .admin-sidebar { display: none; }
+  .mobile-bottom-nav { display: grid !important; }
+  .admin-content { min-width: 0; }
+  .tournament-category-layout, .canteen-sell, .catalog-layout { grid-template-columns: 1fr; }
+  .tournament-categories { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
+  .tournament-categories h3, .tournament-categories form { grid-column: 1 / -1; }
+  .cart-card { position: static; }
+}
+
+@media (max-width: 620px) {
+  .brand { gap: .55rem; font-size: 1rem; }
+  .brand-mark { width: 2.45rem; height: 2.45rem; }
+  .people-controls, .fee-settings, .fees-controls, .fee-filters, .canteen-filters { padding: .85rem; }
+  .person-row, .school-row, .due-row, .sale-row { padding: .85rem; }
+  .person-row, .school-row { align-items: flex-start; }
+  .school-row > div { width: 100%; justify-content: space-between; }
+  .person-badges { gap: .3rem; }
+  .fee-stats, .canteen-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fee-stats > div, .canteen-stats > div { min-height: 5.7rem; padding: .75rem; }
+  .fee-stats strong, .canteen-stats strong { font-size: .98rem; overflow-wrap: anywhere; }
+  .tournament-summary { flex-direction: column; }
+  .tournament-actions { width: 100%; }
+  .tournament-actions > button { flex: 1 1 11rem; }
+  .tournament-categories { grid-template-columns: 1fr; }
+  .entry-list > div { align-items: flex-start; flex-direction: column; }
+  .quick-person { align-items: stretch; flex-direction: column; }
+  .quick-person button { width: 100%; }
+  .fixture-round { min-width: min(82vw, 19rem); }
+  .match-card { min-height: 9rem; }
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product-button { min-width: 0; min-height: 5.5rem; padding: .7rem; font-size: .9rem; }
+  .cart-lines li { grid-template-columns: minmax(0, 1fr) auto; }
+  .cart-lines li > strong { grid-column: 2; }
+}

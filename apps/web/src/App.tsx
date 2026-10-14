@@ -24,7 +24,7 @@ function AppFrame({ children }: { children: ReactNode }) {
     <div className="app-shell">
       <header className="site-header">
         <a className="brand" href="#inicio" aria-label="Rafa Tenis, inicio">
-          <span className="brand-mark" aria-hidden="true">RT</span>
+          <img className="brand-mark" src="/branding/logoRafa.png" alt="" />
           <span>Rafa Tenis</span>
         </a>
       </header>

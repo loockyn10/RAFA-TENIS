@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-14 (Sprint 10B.1, correcciones de seguridad SEC-01…04; sobre Sprint 10A/09)
+# CURRENT_STATE.md — 2026-10-14 (Sprint 10C.2 UX/UI administrativo; sobre 10B.1/10A/09)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -80,8 +80,15 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 - Administración: navegación lateral agrupada en escritorio; en móvil, barra inferior con Inicio, Reservas, Cantina y Más. El inicio ofrece accesos a reservas, cantina y jugadores sin inventar métricas ni datos.
 - Portal del jugador: navegación diferenciada; en móvil, Inicio, Reservar, Mis turnos y Más. Calendario, formularios, tarjetas y modales recibieron mejoras de contraste, jerarquía, tamaño táctil y safe areas.
 - No se modificaron tablas, migraciones, consultas, RPC, permisos ni reglas de negocio. No hubo despliegue ni prueba manual visual en navegador/dispositivo.
-- El repositorio solo contiene el ícono técnico existente (`apps/web/public/icon.svg`), no el escudo original ni las referencias visuales anunciadas en el pedido. No se creó ni sustituyó ningún logo; queda pendiente recibir el activo original para integrarlo.
+- El repositorio contiene el ícono técnico y un escudo PNG en `apps/web/public/branding/logoRafa.png`. La afirmación previa de que no existía escudo era incorrecta; se requiere confirmación del club solo si se desea sustituir este activo por otro.
 - Validación local: `pnpm typecheck`, `pnpm lint`, `pnpm test` (66 pruebas, 12 archivos) y `pnpm build` finalizaron correctamente. El build conserva la advertencia de JavaScript superior a 500 kB.
+
+## Sprint 10C.2 — módulos administrativos (local)
+- Jugadores, cuotas, escuela, torneos, cantina y canchas/configuración comparten superficies, jerarquías, indicadores textuales de estado, foco visible y controles táctiles del sistema de 10C.1, sin reemplazar componentes ni alterar sus flujos.
+- En anchos de hasta 899 px, la administración conserva la navegación inferior y los módulos de dos columnas pasan a una sola columna; las listas usan filas/cards legibles. El fixture conserva sus rondas horizontales con desplazamiento contenido y ajuste por ronda.
+- La cabecera utiliza el escudo existente del repositorio, sin crear ni modificar archivos de branding. No se modificaron tablas, migraciones, consultas, RPC, permisos, cálculos ni reglas de negocio.
+- Validación local: `pnpm typecheck`, `pnpm lint`, `pnpm test` (66 pruebas, 12 archivos) y `pnpm build` finalizaron correctamente. El build mantiene la advertencia conocida de JavaScript superior a 500 kB.
+- Pendiente: recorrido visual manual autenticado con datos reales, incluyendo 360/390/430/768/1024/1440 px, formularios/modales, navegación, foco por teclado y ausencia de overflow horizontal.
 
 ## No implementado
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.

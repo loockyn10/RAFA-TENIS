@@ -42,9 +42,9 @@ Auditoría sin correcciones: 0 críticos, 1 alto, 4 medios, 8 bajos. **Sprint 10
 - [ ] (Residual SEC-02, bajo) `cancel_player_reservation` y las RPC de torneos leen la fila antes de validar permisos (oráculo de existencia de UUID solo para autenticados). Corregir con el patrón de 10B.1 (leer solo `club_id`, validar, luego bloquear) cuando se toquen esas funciones.
 
 ## Diseño — próximos pasos
-- [ ] Recibir el escudo original y las referencias visuales del club como archivos utilizables; reemplazar el marcador actual únicamente tras confirmar el activo correcto.
-- [ ] Sprint 10C.2: profundizar el rediseño de Cuotas, Jugadores, Escuela, Torneos, Cantina y configuraciones, sin alterar los flujos funcionales.
-- [ ] Probar manualmente la navegación de Sprint 10C.1 en escritorio y en pantallas de 360–430 px: menú Más, cambio Admin/Jugador, calendario, alta de reserva, formularios y ausencia de overflow horizontal.
+- [ ] Confirmar con el club si `apps/web/public/branding/logoRafa.png` es el escudo definitivo y, si corresponde, aportar referencias visuales adicionales.
+- [x] Sprint 10C.2: rediseñar Cuotas, Jugadores, Escuela, Torneos, Cantina y configuraciones, sin alterar los flujos funcionales.
+- [ ] Probar manualmente la navegación y los módulos de 10C.1/10C.2 en 360/390/430/768/1024/1440 px: menú Más, cambio Admin/Jugador, calendario, altas/ediciones, modales, foco por teclado y ausencia de overflow horizontal.
 
 ## P1/P2 (no tomar ahora)
 - [ ] Confirmar con Rafa importe inicial, día de vencimiento y criterio operativo de emisión mensual antes de habilitar cuotas en el club.
