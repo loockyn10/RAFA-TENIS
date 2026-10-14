@@ -30,6 +30,7 @@ export function PlayerPortal({ access, onOpenAdmin }: { access: PlayerClubAccess
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [showMobileMore, setShowMobileMore] = useState(false)
+  const [showAccount, setShowAccount] = useState(false)
   const selectedClub = access.find((item) => item.club_id === clubId) ?? access[0]
 
   const loadCore = async () => {
@@ -67,16 +68,17 @@ export function PlayerPortal({ access, onOpenAdmin }: { access: PlayerClubAccess
   useEffect(() => { if (section === 'dues') void loadDues(); if (section === 'tournaments') void loadTournaments() }, [section, clubId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const upcoming = reservations.find((item) => item.status === 'confirmed' && new Date(item.starts_at) >= new Date())
-  const changeSection = (nextSection: typeof section) => { setSection(nextSection); setShowMobileMore(false) }
+  const changeSection = (nextSection: typeof section) => { setSection(nextSection); setShowMobileMore(false); if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' }) }
   if (!selectedClub) return null
   if (loading) return <p className="screen-message" role="status">Cargando tu portal…</p>
 
   return <div className="player-layout">
     <header className="player-header">
-      <div><p className="eyebrow">Portal del jugador</p><h1>{selectedClub.club_name}</h1><p className="user-email">Hola, {selectedClub.full_name}</p></div>
-      <div className="header-actions">{onOpenAdmin && <button className="secondary-button" type="button" onClick={onOpenAdmin}>Administración</button>}<button className="secondary-button" type="button" onClick={() => void signOut()}>Cerrar sesión</button></div>
+      <a className="brand" href="#inicio" aria-label="Rafa Tenis, inicio"><img className="brand-mark" src="/branding/logoRafa.png" alt="" /><span>Rafa Tenis</span></a>
+      <h1 className="visually-hidden">Portal del jugador de {selectedClub.club_name}</h1>
+      <div className="player-context"><span className="player-greeting">Hola, {selectedClub.full_name}</span><button className="account-trigger" type="button" aria-expanded={showAccount} aria-controls="player-account-menu" onClick={() => setShowAccount((current) => !current)}>Cuenta</button></div>
     </header>
-    {access.length > 1 && <label className="club-selector">Club<select value={clubId} onChange={(event) => setClubId(event.target.value)}>{access.map((item) => <option key={item.club_id} value={item.club_id}>{item.club_name}</option>)}</select></label>}
+    {showAccount && <section className="account-menu" id="player-account-menu" aria-label="Cuenta y configuración"><p className="eyebrow">Portal del jugador</p><strong>{selectedClub.full_name}</strong><span>{selectedClub.club_name}</span>{access.length > 1 && <label>Club<select value={clubId} onChange={(event) => setClubId(event.target.value)}>{access.map((item) => <option key={item.club_id} value={item.club_id}>{item.club_name}</option>)}</select></label>}<div className="account-actions">{onOpenAdmin && <button className="secondary-button" type="button" onClick={onOpenAdmin}>Administración</button>}<button className="secondary-button" type="button" onClick={() => void signOut()}>Cerrar sesión</button></div></section>}
     {error && <p className="form-error" role="alert">{error}</p>}
     <nav className="admin-nav player-desktop-nav" aria-label="Navegación del jugador">
       <button className={section === 'home' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('home')}>Inicio</button>

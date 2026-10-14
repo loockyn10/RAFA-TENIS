@@ -27,6 +27,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   const [lessonCreation, setLessonCreation] = useState<{ courtId: string; date: string; startsAt: string } | null>(null)
   const [requestedTournamentReservationId, setRequestedTournamentReservationId] = useState<string | null>(null)
   const [showMobileMore, setShowMobileMore] = useState(false)
+  const [showAccount, setShowAccount] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -123,6 +124,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   const changeSection = (nextSection: typeof section) => {
     setSection(nextSection)
     setShowMobileMore(false)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   if (status === 'loading') return <div className="screen-message" role="status">Cargando acceso administrativo…</div>
@@ -131,14 +133,14 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   return (
     <div className="admin-layout">
       <header className="admin-header">
-        <div><p className="eyebrow">Panel administrativo</p><h1>{title}</h1><p className="user-email">{user.email ?? 'Cuenta autenticada'}</p></div>
-        <div className="header-actions">{onOpenPlayerPortal && <button className="secondary-button" type="button" onClick={onOpenPlayerPortal}>Mi portal</button>}<button className="secondary-button" type="button" onClick={() => void closeSession()} disabled={isSigningOut}>{isSigningOut ? 'Cerrando…' : 'Cerrar sesión'}</button></div>
+        <a className="brand" href="#inicio" aria-label="Rafa Tenis, inicio"><img className="brand-mark" src="/branding/logoRafa.png" alt="" /><span>Rafa Tenis</span></a>
+        <h1 className="visually-hidden">{section === 'home' ? title : `Administración · ${section === 'reservations' ? 'Reservas' : section === 'canteen' ? 'Cantina' : 'Club'}`}</h1>
+        <div className="admin-context"><span>{section === 'home' ? title : section === 'reservations' ? 'Reservas' : section === 'canteen' ? 'Cantina' : 'Administración'}</span><button className="account-trigger" type="button" aria-expanded={showAccount} aria-controls="admin-account-menu" onClick={() => setShowAccount((current) => !current)}>Cuenta</button></div>
       </header>
       {error && <p className="form-error" role="alert">{error}</p>}
       {memberships.length === 0 ? <NoClubAccess /> : <>
-        {clubs.length > 1 && <label className="club-selector">Club<select value={selectedClubId ?? ''} onChange={(event) => setSelectedClubId(event.target.value)}>{clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></label>}
+        {showAccount && <section className="account-menu" id="admin-account-menu" aria-label="Cuenta y configuración"><p className="eyebrow">Cuenta</p><strong>{user.email ?? 'Cuenta autenticada'}</strong><span>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Personal operativo'}</span>{clubs.length > 1 && <label>Club<select value={selectedClubId ?? ''} onChange={(event) => setSelectedClubId(event.target.value)}>{clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></label>}<div className="account-actions">{onOpenPlayerPortal && <button className="secondary-button" type="button" onClick={onOpenPlayerPortal}>Mi portal</button>}<button className="secondary-button" type="button" onClick={() => void closeSession()} disabled={isSigningOut}>{isSigningOut ? 'Cerrando…' : 'Cerrar sesión'}</button></div></section>}
         {selectedClub && <>
-          <section className="stats-grid" aria-label="Resumen de canchas"><div><span>Total de canchas</span><strong>{courts.length}</strong></div><div><span>Canchas activas</span><strong>{activeCourts}</strong></div><div><span>Tu permiso</span><strong>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Personal operativo'}</strong></div></section>
           <div className="admin-workspace">
             <nav className="admin-nav admin-sidebar" aria-label="Secciones administrativas">
               <p className="nav-group-label">Operación</p>
@@ -154,7 +156,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
               {canManage && <button className={section === 'playerAccess' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('playerAccess')}>Portal de jugadores</button>}
             </nav>
             <div className="admin-content">
-              {section === 'home' && <section className="home-panel"><p className="eyebrow">Resumen del club</p><h2>Todo lo importante, a mano.</h2><p>Elegí una acción para continuar. Los datos del club y las reglas de cada módulo se mantienen sin cambios.</p><div className="quick-actions"><button type="button" onClick={() => changeSection('reservations')}>Ver reservas</button><button className="secondary-button" type="button" onClick={() => changeSection('canteen')}>Abrir cantina</button><button className="secondary-button" type="button" onClick={() => changeSection('people')}>Consultar jugadores</button></div></section>}
+              {section === 'home' && <><section className="stats-grid" aria-label="Resumen de canchas"><div><span>Total de canchas</span><strong>{courts.length}</strong></div><div><span>Canchas activas</span><strong>{activeCourts}</strong></div><div><span>Tu permiso</span><strong>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Personal operativo'}</strong></div></section><section className="home-panel"><p className="eyebrow">Resumen del club</p><h1>Todo lo importante, a mano.</h1><p>Elegí una acción para continuar. Los datos del club y las reglas de cada módulo se mantienen sin cambios.</p><div className="quick-actions"><button type="button" onClick={() => changeSection('reservations')}>Ver reservas</button><button className="secondary-button" type="button" onClick={() => changeSection('canteen')}>Abrir cantina</button><button className="secondary-button" type="button" onClick={() => changeSection('people')}>Consultar jugadores</button></div></section></>}
               {section === 'reservations' && <ReservationCalendar client={client} club={selectedClub} courts={courts} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); changeSection('school') }} onOpenTournamentMatch={(reservationId) => { setRequestedTournamentReservationId(reservationId); changeSection('tournaments') }} onCreateLesson={(request) => { setLessonCreation(request); changeSection('school') }} />}
               {section === 'school' && <SchoolPanel client={client} club={selectedClub} courts={courts} canManageCoaches={canManage} requestedLessonId={requestedLessonId} onRequestedLessonHandled={() => setRequestedLessonId(null)} requestedCreation={lessonCreation} onRequestedCreationHandled={() => setLessonCreation(null)} />}
               {section === 'tournaments' && <TournamentPanel client={client} club={selectedClub} courts={courts} canManage={canManage} requestedReservationId={requestedTournamentReservationId} onRequestedReservationHandled={() => setRequestedTournamentReservationId(null)} />}

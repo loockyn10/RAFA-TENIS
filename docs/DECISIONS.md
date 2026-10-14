@@ -95,3 +95,9 @@
 **Motivo:** el error provenía de la función (cuadro de una sola ronda), no de la constraint; relajarla habría ocultado datos inconsistentes. Las constraints `NOT VALID` no bloquean instalaciones con filas generadas por el código anterior y no se regeneran fixtures existentes.
 **Consecuencia:** se elimina el bloqueo por "rondas posteriores finalizadas" (rompía cuadros con BYE); el avance sigue protegido por el casillero ocupado y el estado del partido siguiente.
 **Estado:** migración versionada y verificada en PostgreSQL local descartable; no aplicada ni verificada en Supabase remoto.
+
+## D018 — Identidad institucional verde y shell móvil compacto
+**Decisión:** la interfaz usa una identidad predominantemente verde con tokens semánticos para superficies, texto, acciones, estados y foco; amarillo tenis queda reservado para acciones/foco destacados y terracota para detalles secundarios. En experiencias autenticadas, el encabezado se reduce a escudo, Rafa Tenis y acceso de cuenta; la información de sesión, cambio de club, cambio de experiencia y cierre de sesión se agrupan en ese acceso.
+**Motivo:** reflejar la identidad deportiva real del club, mejorar contraste bajo luz exterior y recuperar altura útil en móviles sin perder los controles disponibles.
+**Consecuencia:** las estadísticas generales solo aparecen en Inicio; la navegación inferior móvil reserva espacio mediante altura dinámica y `safe-area`, mientras modales y menú Más mantienen capas superiores. Los componentes funcionales conservan sus flujos y solo adoptan tokens/superficies del sistema.
+**Estado:** implementado localmente en Sprint 11A; pendiente recorrido visual autenticado en dispositivos y tamaños objetivo.

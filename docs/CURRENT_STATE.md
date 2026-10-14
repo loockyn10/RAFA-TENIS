@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-14 (Sprint 10B.2 idempotencia financiera; sobre 10C.2/10B.1/10A/09)
+# CURRENT_STATE.md — 2026-10-14 (Sprint 11A identidad visual; sobre 10B.2/10C.2/10B.1/10A/09)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -97,6 +97,13 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 - La cabecera utiliza el escudo existente del repositorio, sin crear ni modificar archivos de branding. No se modificaron tablas, migraciones, consultas, RPC, permisos, cálculos ni reglas de negocio.
 - Validación local: `pnpm typecheck`, `pnpm lint`, `pnpm test` (66 pruebas, 12 archivos) y `pnpm build` finalizaron correctamente. El build mantiene la advertencia conocida de JavaScript superior a 500 kB.
 - Pendiente: recorrido visual manual autenticado con datos reales, incluyendo 360/390/430/768/1024/1440 px, formularios/modales, navegación, foco por teclado y ausencia de overflow horizontal.
+
+## Sprint 11A — identidad visual institucional y estructura mobile first (local)
+- La identidad visual pasa a una base predominantemente verde: fondo bosque, superficies escalonadas verdes, textos claros, amarillo tenis para acciones principales y terracota como detalle. Los tokens CSS semánticos centralizan fondo, superficies, bordes, texto, acciones, estados y foco; los campos mantienen una superficie clara para distinguirse inequívocamente de sus contenedores.
+- Administración y portal de jugador usan un encabezado compacto con el escudo existente (`apps/web/public/branding/logoRafa.png`), Rafa Tenis y un acceso de cuenta. Allí se concentran correo/perfil, selector de club cuando corresponde, cambio entre portal y administración y cierre de sesión.
+- El resumen de canchas y rol queda exclusivamente en Inicio. Al cambiar de sección se restablece el scroll de página sin desmontar módulos ni alterar su estado operativo.
+- La barra inferior móvil conserva Inicio, Reservas, Cantina y Más en administración; el portal conserva su navegación específica. Se ajustaron altura dinámica, `safe-area`, orden de capas y espacio inferior del contenido para que la barra y su menú no oculten el último elemento o los modales.
+- No se modificaron Supabase, migraciones, consultas, RPC, permisos, autenticación ni reglas de negocio. No hubo despliegue ni validación manual autenticada en navegador/dispositivo durante este sprint.
 
 ## No implementado
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.

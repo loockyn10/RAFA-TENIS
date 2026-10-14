@@ -426,3 +426,179 @@ input:focus, select:focus, textarea:focus { border-color: var(--color-primary); 
   .cart-lines li { grid-template-columns: minmax(0, 1fr) auto; }
   .cart-lines li > strong { grid-column: 2; }
 }
+
+/* Sprint 11A: institutional green surface system and compact mobile shell. */
+:root {
+  --surface-canvas: #103F2E;
+  --surface-base: #086443;
+  --surface-raised: #23734E;
+  --surface-subtle: #18583E;
+  --surface-input: #F8F7ED;
+  --border-subtle: #5C9875;
+  --border-strong: #A6D0A0;
+  --text-primary: #F8F7ED;
+  --text-secondary: #D6E8D3;
+  --text-on-light: #103F2E;
+  --text-placeholder: #52665D;
+  --action-primary: #F5E71B;
+  --action-primary-hover: #FFF35A;
+  --action-secondary: #23734E;
+  --action-danger-hover: #FFCEC5;
+  --state-success: #BEE4A8;
+  --state-warning: #F5E71B;
+  --state-danger: #FFB4A7;
+  --surface-info: #315D6F;
+  --surface-tournament: #5E4E26;
+  --focus-ring: #F5E71B;
+  --color-primary: var(--action-primary);
+  --color-primary-dark: var(--text-primary);
+  --color-primary-soft: var(--surface-subtle);
+  --color-accent: var(--action-primary);
+  --color-terracotta: #CF713B;
+  --color-terracotta-soft: #5F3927;
+  --color-canvas: var(--surface-canvas);
+  --color-surface: var(--surface-raised);
+  --color-surface-muted: var(--surface-subtle);
+  --color-text: var(--text-primary);
+  --color-text-muted: var(--text-secondary);
+  --color-border: var(--border-subtle);
+  --color-danger: var(--state-danger);
+  --shadow-card: 0 10px 26px rgb(0 0 0 / 18%);
+}
+
+body, .app-shell { background: var(--surface-canvas); color: var(--text-primary); }
+.app-shell { min-height: 100dvh; background-image: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+main { padding-top: clamp(1rem, 3vw, 2rem); }
+footer { color: var(--text-secondary); border-color: var(--border-subtle); }
+h1, h2, h3, h4, strong { color: var(--text-primary); }
+.eyebrow { color: var(--action-primary); }
+.intro, .subtle-copy, .user-email, .field-help, .section-heading > p { color: var(--text-secondary); }
+
+/* The signed-in experiences own the compact header; login keeps the simple app header. */
+.app-shell:has(.admin-layout) > .site-header,
+.app-shell:has(.player-layout) > .site-header,
+.app-shell:has(.admin-layout) > footer,
+.app-shell:has(.player-layout) > footer { display: none; }
+.app-shell:has(.admin-layout) main,
+.app-shell:has(.player-layout) main { width: min(100%, 1120px); padding-top: 0; }
+
+.admin-header, .player-header {
+  position: sticky;
+  z-index: 15;
+  top: 0;
+  min-height: 4rem;
+  align-items: center;
+  padding: .55rem max(1rem, env(safe-area-inset-right)) .55rem max(1rem, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-canvas);
+}
+.admin-header .brand, .player-header .brand { color: var(--text-primary); }
+.brand-mark { width: 2.75rem; height: 2.75rem; }
+.admin-context, .player-context { display: flex; min-width: 0; align-items: center; justify-content: flex-end; gap: .7rem; color: var(--text-secondary); font-size: .85rem; font-weight: 750; }
+.admin-context > span, .player-greeting { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-trigger { min-height: 2.45rem; padding: .45rem .75rem; border: 1px solid var(--border-strong); border-radius: 99px; background: transparent; color: var(--text-primary); font-size: .82rem; }
+.account-trigger:hover:not(:disabled) { border-color: var(--action-primary); background: var(--surface-raised); color: var(--text-primary); transform: none; }
+.account-menu { display: grid; gap: .55rem; width: min(100%, 25rem); margin-left: auto; padding: 1rem; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface-raised); box-shadow: var(--shadow-card); }
+.account-menu .eyebrow { margin-bottom: 0; }
+.account-menu > span { color: var(--text-secondary); font-size: .88rem; }
+.account-actions { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .25rem; }
+
+button { border: 1px solid transparent; background: var(--action-primary); color: var(--text-on-light); box-shadow: none; }
+button:hover:not(:disabled) { background: var(--action-primary-hover); color: var(--text-on-light); }
+.secondary-button { border-color: var(--border-strong); background: transparent; color: var(--text-primary); }
+.secondary-button:hover:not(:disabled) { border-color: var(--action-primary); background: var(--surface-subtle); color: var(--text-primary); }
+.text-button { color: var(--action-primary); }
+.text-button:hover:not(:disabled) { color: var(--action-primary-hover); }
+input, select, textarea { border-color: var(--border-strong); background: var(--surface-input); color: var(--text-on-light); }
+input::placeholder, textarea::placeholder { color: var(--text-placeholder); opacity: 1; }
+input:hover, select:hover, textarea:hover { border-color: var(--action-primary); }
+input:focus, select:focus, textarea:focus { border-color: var(--action-primary); box-shadow: 0 0 0 3px rgb(245 231 27 / 28%); }
+.brand:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline-color: var(--focus-ring); }
+
+.auth-card, .portal-card, .portal-panel, .player-access-panel, .court-card, .home-panel,
+.screen-message, .configuration-card, .calendar-scroll, .reservation-modal, .admin-sidebar,
+.people-list, .school-list, .due-list, .account-dues, .sale-list, .entry-list, .fee-settings,
+.fees-controls, .fee-filters, .school-add-coach, .tournament-summary, .entry-form, .fixture,
+.canteen-products, .cart-card, .portal-admin-grid .portal-form, .invitation-list {
+  border-color: var(--border-subtle); background: var(--surface-raised); box-shadow: var(--shadow-card);
+}
+.configuration-card ul { color: var(--state-danger); }
+.configuration-card code { color: var(--action-primary); }
+.form-success { color: var(--text-on-light); background: var(--state-success); }
+.form-error { color: var(--text-on-light); background: var(--state-danger); }
+.danger-button { background: var(--state-danger); color: var(--text-on-light); }
+.danger-button:hover:not(:disabled) { background: var(--action-danger-hover); }
+
+.stats-grid { gap: .7rem; margin-bottom: 1rem; }
+.stats-grid > div, .fee-stats > div, .canteen-stats > div { border-color: var(--border-subtle); background: var(--surface-raised); box-shadow: none; }
+.stats-grid > div:first-child, .fee-stats > div:first-child, .canteen-stats > div:first-child { border-top-color: var(--action-primary); }
+.stats-grid > div:nth-child(2), .fee-stats > div:nth-child(2), .canteen-stats > div:nth-child(2) { border-top-color: var(--color-terracotta); }
+.stats-grid > div:nth-child(3), .fee-stats > div:nth-child(3), .canteen-stats > div:nth-child(3) { border-top-color: var(--border-strong); }
+.stats-grid span, .fee-stats span, .canteen-stats span { color: var(--text-secondary); }
+.stats-grid strong, .fee-stats strong, .canteen-stats strong { color: var(--text-primary); }
+.home-panel { max-width: none; }
+.home-panel h1 { max-width: 18ch; font-size: clamp(1.9rem, 5vw, 3.3rem); }
+.home-panel p:last-of-type { color: var(--text-secondary); }
+.admin-sidebar { background: var(--surface-subtle); }
+.nav-group-label { color: var(--text-secondary); }
+.admin-nav .nav-button, .nav-button { color: var(--text-secondary); }
+.admin-nav .nav-button:hover:not(:disabled), .admin-nav .nav-button.active, .nav-button:hover:not(:disabled), .nav-button.active { background: var(--surface-raised); color: var(--action-primary); }
+
+.calendar-scroll, .reservation-modal { background: var(--surface-raised); }
+.time-axis, .calendar-court h3 { background: var(--surface-subtle); border-color: var(--border-subtle); color: var(--text-primary); }
+.calendar-court, .calendar-court h3 { border-color: var(--border-subtle); }
+.calendar-track { background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(2rem - 1px), rgb(216 232 211 / 19%) calc(2rem - 1px), rgb(216 232 211 / 19%) 2rem); }
+.time-label { color: var(--text-secondary); }
+.calendar-slot:hover:not(:disabled) { background: rgb(245 231 27 / 20%); }
+.reservation-block { border-color: var(--border-strong); background: var(--surface-subtle); color: var(--text-primary); }
+.reservation-block:hover:not(:disabled) { background: var(--surface-base); }
+.block-occupation { border-color: var(--color-terracotta); background: var(--color-terracotta-soft); color: var(--text-primary); }
+.lesson-occupation { border-color: var(--border-strong); background: var(--surface-info); color: var(--text-primary); }
+.tournament-occupation { border-color: var(--action-primary); background: var(--surface-tournament); color: var(--text-primary); }
+.reservation-modal-backdrop { z-index: 50; background: rgb(7 35 25 / 75%); }
+.recurrence-fieldset, .player-matches { border-color: var(--border-subtle); }
+.selected-person, .due-amounts { background: var(--surface-subtle); color: var(--text-primary); }
+.player-matches button { background: var(--surface-raised); color: var(--text-primary); }
+.player-matches button:hover { background: var(--surface-subtle); }
+.person-row, .school-row, .due-row, .sale-row, .reservation-row, .invitation-list article { color: var(--text-primary); }
+.person-row:hover, .school-row:hover { background: var(--surface-subtle); }
+.person-row small, .school-row span, .due-row span:not(.due-status), .sale-row span, .sale-row small, .reservation-row span, .invitation-list span { color: var(--text-secondary); }
+.person-row + .person-row, .school-row + .school-row, .due-row + .due-row, .sale-row + .sale-row, .reservation-row, .invitation-list article, .person-canteen, .person-reservations { border-color: var(--border-subtle); }
+.product-button, .availability-card, .match-card, .payment-history li, .player-category { border-color: var(--border-subtle); background: var(--surface-subtle); color: var(--text-primary); }
+.product-button span, .availability-card p, .availability-card small, .player-tournament p, .player-tournament small { color: var(--text-secondary); }
+.product-button:hover { border-color: var(--action-primary); background: var(--surface-base); }
+.availability-card.selected { border-color: var(--action-primary); background: var(--surface-base); }
+.availability-card button { background: transparent; color: var(--text-primary); }
+.availability-card button:hover:not(:disabled) { background: var(--surface-raised); color: var(--action-primary); }
+.sale-status.pending, .due-status.pending, .membership-state.none { background: var(--surface-subtle); color: var(--text-secondary); }
+.sale-status.paid, .due-status.paid, .person-state.active, .membership-state.active, .court-state.active, .champion { background: var(--state-success); color: var(--text-on-light); }
+.sale-status.partial, .due-status.partial { background: var(--state-warning); color: var(--text-on-light); }
+.sale-status.voided, .due-status.overdue { background: var(--state-danger); color: var(--text-on-light); }
+
+@media (max-width: 899px) {
+  .app-shell:has(.admin-layout) main, .app-shell:has(.player-layout) main { padding-bottom: calc(5.4rem + env(safe-area-inset-bottom)); }
+  .admin-layout, .player-layout { gap: 1rem; }
+  .admin-header, .player-header { min-height: 3.75rem; }
+  .player-greeting, .admin-context > span { display: none; }
+  .mobile-bottom-nav { z-index: 30; min-height: calc(4.5rem + env(safe-area-inset-bottom)); padding-bottom: calc(.45rem + env(safe-area-inset-bottom)); border-color: var(--border-subtle); background: var(--surface-canvas); box-shadow: 0 -8px 24px rgb(0 0 0 / 22%); }
+  .mobile-bottom-nav button { color: var(--text-secondary); }
+  .mobile-bottom-nav button.active { background: var(--surface-raised); color: var(--action-primary); }
+  .mobile-more-menu { z-index: 29; bottom: calc(4.85rem + env(safe-area-inset-bottom)); border-color: var(--border-strong); background: var(--surface-raised); box-shadow: var(--shadow-card); }
+  .mobile-more-menu button { background: var(--surface-subtle); color: var(--text-primary); }
+  .mobile-more-menu button:hover:not(:disabled) { background: var(--surface-base); color: var(--action-primary); }
+}
+
+@media (max-width: 620px) {
+  .admin-header, .player-header { padding-inline: .75rem; }
+  .brand { gap: .45rem; font-size: 1rem; }
+  .brand-mark { width: 2.4rem; height: 2.4rem; }
+  .account-menu { margin-inline: .75rem; width: auto; }
+  .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stats-grid > div { min-height: 5.65rem; padding: .7rem; }
+  .stats-grid strong { font-size: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
