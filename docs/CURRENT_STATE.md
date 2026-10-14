@@ -60,6 +60,14 @@ La arquitectura previa proyectaba una entidad `players`, pero las migraciones ex
 
 El pedido de Sprint 08 informa que Sprint 07 fue desplegado y que al generar fixture aparece `tournament_matches_next_target`; la documentación previa aún lo indicaba como no aplicado remotamente. Se registra el fallo como bug pendiente. Sprint 10A identificó la causa reproducible (categoría de 2 inscripciones) y versionó la corrección, pero sigue pendiente aplicarla y verificarla en el entorno desplegado. No se sabe cuántas inscripciones tenía la categoría que falló: si eran 3 o más, esa falla concreta no queda explicada y debe re-investigarse con el mensaje exacto tras aplicar la migración. El roadmap histórico llama Sprint 7 al portal, pero el pedido actual lo define como Sprint 09.
 
+## Auditoría de seguridad (Sprint 10B, sin correcciones; detalle en `docs/SECURITY_AUDIT.md`)
+Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado más arriba:
+- El **canje de invitaciones del portal no funciona en Supabase**: `redeem_player_invitation` sigue usando `digest()` sin esquema; el fix `20261014000000_fix_player_invitation_crypto.sql` solo corrige `create_player_invitation`. El flujo «registro → canje» descrito en Sprint 09 está incompleto (SEC-01).
+- `ARCHITECTURE.md` indica que solo owner/admin cambian nombre/superficie/estado/orden de canchas, pero `20261013000000` no revoca los privilegios por defecto de `authenticated` en `courts`, `clubs`, `club_staff` (SEC-03); las RPC de cuotas, escuela y cantina siguen ejecutables por `anon` aunque validan `auth.uid()` (SEC-02).
+- «Cambios locales sin commit en `20261013080000_player_portal.sql`» quedó obsoleto: se incluyeron en el commit `1e99a8a` (corrección de un paréntesis en `player_tournaments`). Si esa migración ya se aplicó con el texto anterior, el repo y el remoto pueden diferir; el historial remoto real sigue sin confirmarse.
+- Evidencia nueva (PostgreSQL 17 local descartable con privilegios por defecto de Supabase emulados, **no** Supabase real): 144 de 163 comprobaciones de la matriz de roles cumplen la expectativa segura (las 19 restantes están mapeadas a hallazgos) y las 13 pruebas de concurrencia pasan (`supabase/verification/run-security-audit-local.sh`). Sigue pendiente toda verificación contra Supabase real.
+- `pnpm typecheck`, `lint`, `test` (66) y `build` pasaron en Sprint 10B; no se modificó código de producción.
+
 ## No implementado
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
