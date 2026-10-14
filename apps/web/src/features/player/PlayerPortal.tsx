@@ -81,32 +81,32 @@ export function PlayerPortal({ access, onOpenAdmin }: { access: PlayerClubAccess
     {showAccount && <section className="account-menu" id="player-account-menu" aria-label="Cuenta y configuración"><p className="eyebrow">Portal del jugador</p><strong>{selectedClub.full_name}</strong><span>{selectedClub.club_name}</span>{access.length > 1 && <label>Club<select value={clubId} onChange={(event) => setClubId(event.target.value)}>{access.map((item) => <option key={item.club_id} value={item.club_id}>{item.club_name}</option>)}</select></label>}<div className="account-actions">{onOpenAdmin && <button className="secondary-button" type="button" onClick={onOpenAdmin}>Administración</button>}<button className="secondary-button" type="button" onClick={() => void signOut()}>Cerrar sesión</button></div></section>}
     {error && <p className="form-error" role="alert">{error}</p>}
     <nav className="admin-nav player-desktop-nav" aria-label="Navegación del jugador">
-      <button className={section === 'home' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('home')}>Inicio</button>
-      <button className={section === 'book' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('book')}>Reservar cancha</button>
-      <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('reservations')}>Mis reservas</button>
-      <button className={section === 'profile' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('profile')}>Mi perfil</button>
-      <button className={section === 'dues' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('dues')}>Mis cuotas</button>
-      <button className={section === 'tournaments' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('tournaments')}>Torneos</button>
+      <button className={section === 'home' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('home')}><PortalIcon name="home" />Inicio</button>
+      <button className={section === 'book' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('book')}><PortalIcon name="calendar" />Reservar cancha</button>
+      <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('reservations')}><PortalIcon name="turns" />Mis reservas</button>
+      <button className={section === 'profile' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('profile')}><PortalIcon name="profile" />Mi perfil</button>
+      <button className={section === 'dues' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('dues')}><PortalIcon name="fees" />Mis cuotas</button>
+      <button className={section === 'tournaments' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('tournaments')}><PortalIcon name="trophy" />Torneos</button>
     </nav>
-    {section === 'home' && <Home membership={selectedClub.membership_status} upcoming={upcoming} timezone={selectedClub.timezone} bookingEnabled={settings?.enabled ?? false} onBook={() => changeSection('book')} />}
+    {section === 'home' && <Home membership={selectedClub.membership_status} upcoming={upcoming} timezone={selectedClub.timezone} bookingEnabled={settings?.enabled ?? false} onBook={() => changeSection('book')} onReservations={() => changeSection('reservations')} />}
     {section === 'book' && <Booking club={selectedClub} settings={settings} onComplete={() => void loadCore()} />}
     {section === 'reservations' && <Reservations club={selectedClub} reservations={reservations} onCancelled={() => void loadCore()} />}
     {section === 'profile' && <ProfilePanel club={selectedClub} profile={profile} onSaved={() => void loadCore()} />}
     {section === 'dues' && <DuesPanel membership={selectedClub.membership_status} dues={dues} />}
     {section === 'tournaments' && <TournamentList tournaments={tournaments} />}
     <nav className="mobile-bottom-nav" aria-label="Accesos principales del jugador">
-      <button className={section === 'home' ? 'active' : ''} type="button" onClick={() => changeSection('home')}>Inicio</button>
-      <button className={section === 'book' ? 'active' : ''} type="button" onClick={() => changeSection('book')}>Reservar</button>
-      <button className={section === 'reservations' ? 'active' : ''} type="button" onClick={() => changeSection('reservations')}>Mis turnos</button>
-      <button className={showMobileMore ? 'active' : ''} type="button" aria-expanded={showMobileMore} onClick={() => setShowMobileMore((current) => !current)}>Más</button>
+      <button className={section === 'home' ? 'active' : ''} type="button" onClick={() => changeSection('home')}><PortalIcon name="home" />Inicio</button>
+      <button className={section === 'book' ? 'active' : ''} type="button" onClick={() => changeSection('book')}><PortalIcon name="calendar" />Reservar</button>
+      <button className={section === 'reservations' ? 'active' : ''} type="button" onClick={() => changeSection('reservations')}><PortalIcon name="turns" />Mis turnos</button>
+      <button className={showMobileMore ? 'active' : ''} type="button" aria-expanded={showMobileMore} onClick={() => setShowMobileMore((current) => !current)}><PortalIcon name="more" />Más</button>
     </nav>
     {showMobileMore && <nav className="mobile-more-menu player-more-menu" aria-label="Más secciones del jugador"><button type="button" onClick={() => changeSection('profile')}>Mi perfil</button><button type="button" onClick={() => changeSection('dues')}>Mis cuotas</button><button type="button" onClick={() => changeSection('tournaments')}>Torneos</button></nav>}
   </div>
 }
 
-function Home({ membership, upcoming, timezone, bookingEnabled, onBook }: { membership: string | null; upcoming: PlayerReservation | undefined; timezone: string; bookingEnabled: boolean; onBook: () => void }) {
+function Home({ membership, upcoming, timezone, bookingEnabled, onBook, onReservations }: { membership: string | null; upcoming: PlayerReservation | undefined; timezone: string; bookingEnabled: boolean; onBook: () => void; onReservations: () => void }) {
   return <section className="portal-home">
-    <div className="portal-card"><p className="eyebrow">Próxima reserva</p>{upcoming ? <><strong>{upcoming.court_name}</strong><p>{displayDate(upcoming.starts_at, timezone)}</p></> : <p>No tenés reservas próximas.</p>}</div>
+    <div className="portal-card"><p className="eyebrow">Próxima reserva</p>{upcoming ? <><strong>{upcoming.court_name}</strong><p>{displayDate(upcoming.starts_at, timezone)}</p></> : <p>No tenés reservas próximas.</p>}<button className="secondary-button" type="button" onClick={onReservations}>Mis turnos</button></div>
     <div className="portal-card"><p className="eyebrow">Membresía</p><strong>{membership === 'active' ? 'Socio activo' : membership === 'inactive' ? 'Membresía inactiva' : 'Sin membresía'}</strong><p>Las reservas no dependen automáticamente de tu condición de socio.</p></div>
     <div className="portal-card"><p className="eyebrow">Cancha</p><p>{bookingEnabled ? 'Consultá horarios disponibles y confirmá tu turno.' : 'Las reservas online no están habilitadas por el club.'}</p><button type="button" onClick={onBook} disabled={!bookingEnabled}>Reservar cancha</button></div>
   </section>
@@ -163,5 +163,20 @@ function ProfilePanel({ club, profile, onSaved }: { club: PlayerClubAccess; prof
 }
 
 function DuesPanel({ membership, dues }: { membership: string | null; dues: Due[] }) { return <section className="portal-panel"><p className="eyebrow">Mis cuotas</p><h2>Estado de cuenta</h2>{membership !== 'active' && <p className="subtle-copy">No tenés una membresía social activa. Si existen cuotas históricas, se muestran abajo.</p>}{dues.length === 0 ? <p className="subtle-copy">No hay cuotas asociadas a tu ficha.</p> : <div className="due-list">{dues.map((due) => <article className="due-row" key={due.id}><div><strong>{due.period}</strong><span>Vence {due.due_date}</span>{due.payments.map((payment, index) => <small key={index}>Pago {money(payment.amount_cents)} · {payment.payment_date} · {payment.payment_method}</small>)}</div><div className="due-row-amounts"><strong>{money(due.amount_cents)}</strong><small>Pagado {money(due.paid_cents)} · Saldo {money(due.balance_cents)}</small></div></article>)}</div>}</section> }
+
+type PortalIconName = 'home' | 'calendar' | 'turns' | 'profile' | 'fees' | 'trophy' | 'more'
+
+function PortalIcon({ name }: { name: PortalIconName }) {
+  const paths: Record<PortalIconName, string> = {
+    home: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3v-10.5Z',
+    calendar: 'M7 3v3m10-3v3M4.5 9h15M6 5h12a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 18 20H6a1.5 1.5 0 0 1-1.5-1.5v-12A1.5 1.5 0 0 1 6 5Z',
+    turns: 'M5 5h14v14H5V5Zm3 4h8m-8 3h8m-8 3h5',
+    profile: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m12-12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+    fees: 'M12 3v18m4-14h-6a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6H8',
+    trophy: 'M8 4h8v4a4 4 0 0 1-8 0V4Zm0 1H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 1v4m-3 4h6m-7 0h8',
+    more: 'M5 12h.01M12 12h.01M19 12h.01',
+  }
+  return <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>
+}
 
 function TournamentList({ tournaments }: { tournaments: Tournament[] }) { return <section className="portal-panel"><p className="eyebrow">Torneos</p><h2>Fixtures y resultados</h2>{tournaments.length === 0 ? <p className="subtle-copy">No hay torneos publicados para este club.</p> : tournaments.map((tournament) => <article className="player-tournament" key={tournament.id}><h3>{tournament.name}</h3><p>{tournament.description}</p><small>{tournament.starts_on} a {tournament.ends_on} · {tournament.status}</small>{tournament.categories.map((category) => <div className="player-category" key={category.id}><h4>{category.name} · {category.modality === 'singles' ? 'Singles' : 'Dobles'}</h4>{category.matches.length === 0 ? <p className="subtle-copy">Fixture todavía no disponible.</p> : category.matches.map((match) => <p key={match.id}><strong>{match.entry_one ?? 'A definir'}</strong> vs <strong>{match.entry_two ?? 'A definir'}</strong>{match.score_text ? ` · ${match.score_text}` : ''}{match.winner ? ` · Ganó ${match.winner}` : ''}</p>)}</div>)}</article>)}</section> }

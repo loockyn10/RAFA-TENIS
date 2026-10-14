@@ -28,6 +28,7 @@ describe('CourtList', () => {
     expect(screen.queryByRole('button', { name: 'Guardar cancha' })).not.toBeInTheDocument()
 
     rerender(<CourtList courts={courts} canManage onSave={rejectedSave} />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Editar cancha' })[0])
     fireEvent.click(screen.getAllByRole('button', { name: 'Guardar cancha' })[0])
 
     expect(await screen.findByText('No se pudieron guardar los cambios.')).toBeInTheDocument()

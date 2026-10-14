@@ -49,7 +49,8 @@ Auditoría sin correcciones: 0 críticos, 1 alto, 4 medios, 8 bajos. **Sprint 10
 - [ ] Confirmar con el club si `apps/web/public/branding/logoRafa.png` es el escudo definitivo y, si corresponde, aportar referencias visuales adicionales.
 - [x] Sprint 10C.2: rediseñar Cuotas, Jugadores, Escuela, Torneos, Cantina y configuraciones, sin alterar los flujos funcionales.
 - [x] Sprint 11A: identidad institucional verde, tokens semánticos, encabezado compacto, cuenta agrupada, resumen solo en Inicio y estructura móvil con navegación inferior/safe areas, sin cambios de negocio.
-- [ ] Probar manualmente la navegación y los módulos de 10C.1/10C.2/11A en 360/390/430/768/1024/1440 px: menú Más, cambio Admin/Jugador, calendario, altas/ediciones, modales, foco por teclado, safe areas y ausencia de overflow horizontal.
+- [x] Sprint 11B: auditoría UX/UI e implementación local de jerarquía operativa, cuenta sin salto de layout, navegación iconificada, agenda compacta, formularios progresivos de cuotas/canchas, listas y superficies consistentes. Sin cambios de negocio ni backend.
+- [ ] Realizar recorrido visual autenticado de 10C/11A/11B en 360/390/430/768/1024/1440 px: menú Más y Cuenta, cambio Admin/Jugador, agenda multicancha/selector móvil, alta/edición/cancelación en modales, Cantina y cobros, Jugadores, Cuotas, Escuela, Torneos, Canchas, Configuración, foco por teclado, safe areas y ausencia de overflow horizontal. El navegador aislado de este sprint no alcanzó Vite local; requiere un navegador que pueda abrir el entorno de desarrollo o una URL de preview.
 
 ## P1/P2 (no tomar ahora)
 - [ ] Confirmar con Rafa importe inicial, día de vencimiento y criterio operativo de emisión mensual antes de habilitar cuotas en el club.

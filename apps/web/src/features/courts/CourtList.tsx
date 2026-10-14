@@ -16,6 +16,16 @@ function CourtCard({ court, canManage, onSave }: { court: Court; canManage: bool
   const [displayOrder, setDisplayOrder] = useState(court.display_order)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [editing, setEditing] = useState(false)
+
+  const resetDraft = () => {
+    setName(court.name)
+    setSurface(court.surface)
+    setActive(court.active)
+    setDisplayOrder(court.display_order)
+    setFeedback(null)
+    setEditing(false)
+  }
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -23,6 +33,7 @@ function CourtCard({ court, canManage, onSave }: { court: Court; canManage: bool
     setFeedback(null)
     const result = await onSave(court, { name: name.trim(), surface: surface.trim(), active, display_order: displayOrder })
     setFeedback(result.error ?? 'Cambios guardados.')
+    if (!result.error) setEditing(false)
     setIsSaving(false)
   }
 
@@ -36,18 +47,19 @@ function CourtCard({ court, canManage, onSave }: { court: Court; canManage: bool
   }
 
   return (
-    <article className="court-card">
-      <form onSubmit={save}>
-        <div className="court-card-header"><h3>{court.name}</h3><CourtState active={active} /></div>
+    <article className={`court-card ${editing ? 'is-editing' : ''}`}>
+      <div className="court-card-header"><h3>{court.name}</h3><CourtState active={active} /></div>
+      {!editing && <><dl><div><dt>Superficie</dt><dd>{court.surface}</dd></div><div><dt>Orden</dt><dd>{court.display_order}</dd></div></dl><button className="secondary-button" type="button" onClick={() => { setFeedback(null); setEditing(true) }}>Editar cancha</button></>}
+      {editing && <form onSubmit={save}>
         <div className="court-fields">
           <label>Nombre<input aria-label={`Nombre de ${court.name}`} value={name} onChange={(event) => setName(event.target.value)} required /></label>
           <label>Superficie<input aria-label={`Superficie de ${court.name}`} value={surface} onChange={(event) => setSurface(event.target.value)} required /></label>
           <label>Orden<input aria-label={`Orden de ${court.name}`} type="number" min="1" value={displayOrder} onChange={(event) => setDisplayOrder(Number(event.target.value))} required /></label>
           <label className="toggle-field"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /> Activa</label>
         </div>
-        {feedback && <p className={feedback === 'Cambios guardados.' ? 'form-success' : 'form-error'} role="status">{feedback}</p>}
-        <button type="submit" disabled={isSaving}>{isSaving ? 'Guardando…' : 'Guardar cancha'}</button>
-      </form>
+        <div className="card-actions"><button className="secondary-button" type="button" onClick={resetDraft} disabled={isSaving}>Cancelar</button><button type="submit" disabled={isSaving}>{isSaving ? 'Guardando…' : 'Guardar cancha'}</button></div>
+      </form>}
+      {feedback && <p className={feedback === 'Cambios guardados.' ? 'form-success' : 'form-error'} role="status">{feedback}</p>}
     </article>
   )
 }

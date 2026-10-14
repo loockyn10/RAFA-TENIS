@@ -26,6 +26,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   const [requestedLessonId, setRequestedLessonId] = useState<string | null>(null)
   const [lessonCreation, setLessonCreation] = useState<{ courtId: string; date: string; startsAt: string } | null>(null)
   const [requestedTournamentReservationId, setRequestedTournamentReservationId] = useState<string | null>(null)
+  const [createReservationRequest, setCreateReservationRequest] = useState(0)
   const [showMobileMore, setShowMobileMore] = useState(false)
   const [showAccount, setShowAccount] = useState(false)
 
@@ -124,6 +125,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   const changeSection = (nextSection: typeof section) => {
     setSection(nextSection)
     setShowMobileMore(false)
+    setShowAccount(false)
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
@@ -144,20 +146,20 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
           <div className="admin-workspace">
             <nav className="admin-nav admin-sidebar" aria-label="Secciones administrativas">
               <p className="nav-group-label">Operación</p>
-              <button className={section === 'home' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('home')}>Inicio</button>
-              <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('reservations')}>Reservas</button>
-              <button className={section === 'canteen' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('canteen')}>Cantina</button>
+              <button className={section === 'home' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('home')}><NavIcon name="home" />Inicio</button>
+              <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('reservations')}><NavIcon name="calendar" />Reservas</button>
+              <button className={section === 'canteen' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('canteen')}><NavIcon name="canteen" />Cantina</button>
               <p className="nav-group-label">Club</p>
-              <button className={section === 'people' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('people')}>Jugadores</button>
-              {canManage && <button className={section === 'fees' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('fees')}>Cuotas</button>}
-              <button className={section === 'school' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('school')}>Escuela de tenis</button>
-              <button className={section === 'tournaments' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('tournaments')}>Torneos</button>
-              <button className={section === 'courts' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('courts')}>Canchas</button>
-              {canManage && <button className={section === 'playerAccess' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('playerAccess')}>Portal de jugadores</button>}
+              <button className={section === 'people' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('people')}><NavIcon name="people" />Jugadores</button>
+              {canManage && <button className={section === 'fees' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('fees')}><NavIcon name="fees" />Cuotas</button>}
+              <button className={section === 'school' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('school')}><NavIcon name="school" />Escuela de tenis</button>
+              <button className={section === 'tournaments' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('tournaments')}><NavIcon name="trophy" />Torneos</button>
+              <button className={section === 'courts' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('courts')}><NavIcon name="court" />Canchas</button>
+              {canManage && <button className={section === 'playerAccess' ? 'nav-button active' : 'nav-button'} type="button" onClick={() => changeSection('playerAccess')}><NavIcon name="portal" />Portal de jugadores</button>}
             </nav>
             <div className="admin-content">
-              {section === 'home' && <><section className="stats-grid" aria-label="Resumen de canchas"><div><span>Total de canchas</span><strong>{courts.length}</strong></div><div><span>Canchas activas</span><strong>{activeCourts}</strong></div><div><span>Tu permiso</span><strong>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Personal operativo'}</strong></div></section><section className="home-panel"><p className="eyebrow">Resumen del club</p><h1>Todo lo importante, a mano.</h1><p>Elegí una acción para continuar. Los datos del club y las reglas de cada módulo se mantienen sin cambios.</p><div className="quick-actions"><button type="button" onClick={() => changeSection('reservations')}>Ver reservas</button><button className="secondary-button" type="button" onClick={() => changeSection('canteen')}>Abrir cantina</button><button className="secondary-button" type="button" onClick={() => changeSection('people')}>Consultar jugadores</button></div></section></>}
-              {section === 'reservations' && <ReservationCalendar client={client} club={selectedClub} courts={courts} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); changeSection('school') }} onOpenTournamentMatch={(reservationId) => { setRequestedTournamentReservationId(reservationId); changeSection('tournaments') }} onCreateLesson={(request) => { setLessonCreation(request); changeSection('school') }} />}
+              {section === 'home' && <><section className="home-panel operational-home"><p className="eyebrow">Operación del día</p><h1>¿Qué necesitás hacer?</h1><p>Accedé directo a las tareas de atención. La agenda es el punto de partida del club.</p><div className="quick-actions"><button type="button" onClick={() => { setCreateReservationRequest((current) => current + 1); changeSection('reservations') }}><NavIcon name="calendar" />Nueva reserva</button><button className="secondary-button" type="button" onClick={() => changeSection('reservations')}><NavIcon name="calendar" />Ver agenda</button><button className="secondary-button" type="button" onClick={() => changeSection('canteen')}><NavIcon name="canteen" />Abrir cantina</button><button className="secondary-button" type="button" onClick={() => changeSection('people')}><NavIcon name="people" />Jugadores</button></div></section><details className="home-secondary"><summary>Información del club</summary><section className="stats-grid" aria-label="Resumen de canchas"><div><span>Canchas</span><strong>{courts.length}</strong></div><div><span>Activas</span><strong>{activeCourts}</strong></div><div><span>Tu permiso</span><strong>{role === 'owner' ? 'Propietario' : role === 'admin' ? 'Administrador' : 'Personal operativo'}</strong></div></section></details></>}
+              {section === 'reservations' && <ReservationCalendar client={client} club={selectedClub} courts={courts} createReservationRequest={createReservationRequest} onCreateReservationHandled={() => setCreateReservationRequest(0)} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); changeSection('school') }} onOpenTournamentMatch={(reservationId) => { setRequestedTournamentReservationId(reservationId); changeSection('tournaments') }} onCreateLesson={(request) => { setLessonCreation(request); changeSection('school') }} />}
               {section === 'school' && <SchoolPanel client={client} club={selectedClub} courts={courts} canManageCoaches={canManage} requestedLessonId={requestedLessonId} onRequestedLessonHandled={() => setRequestedLessonId(null)} requestedCreation={lessonCreation} onRequestedCreationHandled={() => setLessonCreation(null)} />}
               {section === 'tournaments' && <TournamentPanel client={client} club={selectedClub} courts={courts} canManage={canManage} requestedReservationId={requestedTournamentReservationId} onRequestedReservationHandled={() => setRequestedTournamentReservationId(null)} />}
               {section === 'people' && <PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} />}
@@ -168,10 +170,10 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
             </div>
           </div>
           <nav className="mobile-bottom-nav" aria-label="Accesos principales">
-            <button className={section === 'home' ? 'active' : ''} type="button" onClick={() => changeSection('home')}>Inicio</button>
-            <button className={section === 'reservations' ? 'active' : ''} type="button" onClick={() => changeSection('reservations')}>Reservas</button>
-            <button className={section === 'canteen' ? 'active' : ''} type="button" onClick={() => changeSection('canteen')}>Cantina</button>
-            <button className={showMobileMore ? 'active' : ''} type="button" aria-expanded={showMobileMore} onClick={() => setShowMobileMore((current) => !current)}>Más</button>
+            <button className={section === 'home' ? 'active' : ''} type="button" onClick={() => changeSection('home')}><NavIcon name="home" />Inicio</button>
+            <button className={section === 'reservations' ? 'active' : ''} type="button" onClick={() => changeSection('reservations')}><NavIcon name="calendar" />Reservas</button>
+            <button className={section === 'canteen' ? 'active' : ''} type="button" onClick={() => changeSection('canteen')}><NavIcon name="canteen" />Cantina</button>
+            <button className={showMobileMore ? 'active' : ''} type="button" aria-expanded={showMobileMore} onClick={() => setShowMobileMore((current) => !current)}><NavIcon name="more" />Más</button>
           </nav>
           {showMobileMore && <nav className="mobile-more-menu" aria-label="Más secciones administrativas"><button type="button" onClick={() => changeSection('people')}>Jugadores</button>{canManage && <button type="button" onClick={() => changeSection('fees')}>Cuotas</button>}<button type="button" onClick={() => changeSection('school')}>Escuela de tenis</button><button type="button" onClick={() => changeSection('tournaments')}>Torneos</button><button type="button" onClick={() => changeSection('courts')}>Canchas</button>{canManage && <button type="button" onClick={() => changeSection('playerAccess')}>Portal de jugadores</button>}</nav>}
         </>}
@@ -182,4 +184,22 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
 
 function NoClubAccess() {
   return <section className="configuration-card"><p className="eyebrow">Acceso restringido</p><h2>No tenés acceso administrativo a ningún club.</h2><p className="intro">Pedile a la persona responsable que verifique tu membresía administrativa.</p></section>
+}
+
+type NavIconName = 'home' | 'calendar' | 'canteen' | 'people' | 'fees' | 'school' | 'trophy' | 'court' | 'portal' | 'more'
+
+function NavIcon({ name }: { name: NavIconName }) {
+  const paths: Record<NavIconName, string> = {
+    home: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3v-10.5Z',
+    calendar: 'M7 3v3m10-3v3M4.5 9h15M6 5h12a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 18 20H6a1.5 1.5 0 0 1-1.5-1.5v-12A1.5 1.5 0 0 1 6 5Z',
+    canteen: 'M4 5h2l1.2 8h9.6L19 7H8M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm7 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+    people: 'M16 20v-1.5A3.5 3.5 0 0 0 12.5 15h-5A3.5 3.5 0 0 0 4 18.5V20m6-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm6-4a3 3 0 0 1 0 6m2 7v-1.5a3.5 3.5 0 0 0-2-3.15',
+    fees: 'M12 3v18m4-14h-6a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6H8',
+    school: 'M3 7.5 12 3l9 4.5-9 4.5-9-4.5Zm3 3v4.25c0 1.8 2.7 3.25 6 3.25s6-1.45 6-3.25V10.5',
+    trophy: 'M8 4h8v4a4 4 0 0 1-8 0V4Zm0 1H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 1v4m-3 4h6m-7 0h8',
+    court: 'M4 4h16v16H4V4Zm8 0v16M4 12h8a4 4 0 0 1 4 4v4',
+    portal: 'M4 4h16v16H4V4Zm4 12 8-8m-1 0h1v1m-7 7H8v-1',
+    more: 'M5 12h.01M12 12h.01M19 12h.01',
+  }
+  return <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>
 }
