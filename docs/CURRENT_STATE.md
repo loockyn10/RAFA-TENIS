@@ -75,6 +75,14 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 - Evidencia local (PostgreSQL 17.10 descartable, **no Supabase**; `supabase/verification/run-sprint-10b1-local.sh`): control negativo 55/150 incumplidas en el estado previo; con las migraciones 150/150 y concurrencia OK (canje, anulaciones). `run-security-audit-local.sh` quedó sin el parche hipotético de canje. `pnpm typecheck`, `lint`, `test` (66) y `build` OK.
 - Abiertos: SEC-05 (Sprint 10B.2) y SEC-06…SEC-13; oráculo de existencia de UUID (solo autenticados) en `cancel_player_reservation` y RPC de torneos.
 
+## Sprint 10C.1 — diseño y navegación (local)
+- Se incorporó una capa de tokens CSS para la identidad visual: verde institucional, verde oscuro, amarillo de acento, terracota, superficies cálidas, espaciado, radios, sombras y estados de foco.
+- Administración: navegación lateral agrupada en escritorio; en móvil, barra inferior con Inicio, Reservas, Cantina y Más. El inicio ofrece accesos a reservas, cantina y jugadores sin inventar métricas ni datos.
+- Portal del jugador: navegación diferenciada; en móvil, Inicio, Reservar, Mis turnos y Más. Calendario, formularios, tarjetas y modales recibieron mejoras de contraste, jerarquía, tamaño táctil y safe areas.
+- No se modificaron tablas, migraciones, consultas, RPC, permisos ni reglas de negocio. No hubo despliegue ni prueba manual visual en navegador/dispositivo.
+- El repositorio solo contiene el ícono técnico existente (`apps/web/public/icon.svg`), no el escudo original ni las referencias visuales anunciadas en el pedido. No se creó ni sustituyó ningún logo; queda pendiente recibir el activo original para integrarlo.
+- Validación local: `pnpm typecheck`, `pnpm lint`, `pnpm test` (66 pruebas, 12 archivos) y `pnpm build` finalizaron correctamente. El build conserva la advertencia de JavaScript superior a 500 kB.
+
 ## No implementado
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 

@@ -29,6 +29,7 @@ export function PlayerPortal({ access, onOpenAdmin }: { access: PlayerClubAccess
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showMobileMore, setShowMobileMore] = useState(false)
   const selectedClub = access.find((item) => item.club_id === clubId) ?? access[0]
 
   const loadCore = async () => {
@@ -66,6 +67,7 @@ export function PlayerPortal({ access, onOpenAdmin }: { access: PlayerClubAccess
   useEffect(() => { if (section === 'dues') void loadDues(); if (section === 'tournaments') void loadTournaments() }, [section, clubId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const upcoming = reservations.find((item) => item.status === 'confirmed' && new Date(item.starts_at) >= new Date())
+  const changeSection = (nextSection: typeof section) => { setSection(nextSection); setShowMobileMore(false) }
   if (!selectedClub) return null
   if (loading) return <p className="screen-message" role="status">Cargando tu portal…</p>
 
@@ -76,20 +78,27 @@ export function PlayerPortal({ access, onOpenAdmin }: { access: PlayerClubAccess
     </header>
     {access.length > 1 && <label className="club-selector">Club<select value={clubId} onChange={(event) => setClubId(event.target.value)}>{access.map((item) => <option key={item.club_id} value={item.club_id}>{item.club_name}</option>)}</select></label>}
     {error && <p className="form-error" role="alert">{error}</p>}
-    <nav className="admin-nav" aria-label="Navegación del jugador">
-      <button className={section === 'home' ? 'nav-button active' : 'nav-button'} onClick={() => setSection('home')}>Inicio</button>
-      <button className={section === 'book' ? 'nav-button active' : 'nav-button'} onClick={() => setSection('book')}>Reservar cancha</button>
-      <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} onClick={() => setSection('reservations')}>Mis reservas</button>
-      <button className={section === 'profile' ? 'nav-button active' : 'nav-button'} onClick={() => setSection('profile')}>Mi perfil</button>
-      <button className={section === 'dues' ? 'nav-button active' : 'nav-button'} onClick={() => setSection('dues')}>Mis cuotas</button>
-      <button className={section === 'tournaments' ? 'nav-button active' : 'nav-button'} onClick={() => setSection('tournaments')}>Torneos</button>
+    <nav className="admin-nav player-desktop-nav" aria-label="Navegación del jugador">
+      <button className={section === 'home' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('home')}>Inicio</button>
+      <button className={section === 'book' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('book')}>Reservar cancha</button>
+      <button className={section === 'reservations' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('reservations')}>Mis reservas</button>
+      <button className={section === 'profile' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('profile')}>Mi perfil</button>
+      <button className={section === 'dues' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('dues')}>Mis cuotas</button>
+      <button className={section === 'tournaments' ? 'nav-button active' : 'nav-button'} onClick={() => changeSection('tournaments')}>Torneos</button>
     </nav>
-    {section === 'home' && <Home membership={selectedClub.membership_status} upcoming={upcoming} timezone={selectedClub.timezone} bookingEnabled={settings?.enabled ?? false} onBook={() => setSection('book')} />}
+    {section === 'home' && <Home membership={selectedClub.membership_status} upcoming={upcoming} timezone={selectedClub.timezone} bookingEnabled={settings?.enabled ?? false} onBook={() => changeSection('book')} />}
     {section === 'book' && <Booking club={selectedClub} settings={settings} onComplete={() => void loadCore()} />}
     {section === 'reservations' && <Reservations club={selectedClub} reservations={reservations} onCancelled={() => void loadCore()} />}
     {section === 'profile' && <ProfilePanel club={selectedClub} profile={profile} onSaved={() => void loadCore()} />}
     {section === 'dues' && <DuesPanel membership={selectedClub.membership_status} dues={dues} />}
     {section === 'tournaments' && <TournamentList tournaments={tournaments} />}
+    <nav className="mobile-bottom-nav" aria-label="Accesos principales del jugador">
+      <button className={section === 'home' ? 'active' : ''} type="button" onClick={() => changeSection('home')}>Inicio</button>
+      <button className={section === 'book' ? 'active' : ''} type="button" onClick={() => changeSection('book')}>Reservar</button>
+      <button className={section === 'reservations' ? 'active' : ''} type="button" onClick={() => changeSection('reservations')}>Mis turnos</button>
+      <button className={showMobileMore ? 'active' : ''} type="button" aria-expanded={showMobileMore} onClick={() => setShowMobileMore((current) => !current)}>Más</button>
+    </nav>
+    {showMobileMore && <nav className="mobile-more-menu player-more-menu" aria-label="Más secciones del jugador"><button type="button" onClick={() => changeSection('profile')}>Mi perfil</button><button type="button" onClick={() => changeSection('dues')}>Mis cuotas</button><button type="button" onClick={() => changeSection('tournaments')}>Torneos</button></nav>}
   </div>
 }
 
