@@ -3,7 +3,7 @@ import { Avatar, Crest, Field, Icon, Modal, SelectInput, type IconName } from '.
 import { useScrolled } from '../../design/media'
 import type { PlayerClubAccess } from '../../types/domain'
 
-export type PlayerSection = 'home' | 'turns' | 'book' | 'tournaments' | 'profile'
+export type PlayerSection = 'home' | 'turns' | 'book' | 'tournaments' | 'news' | 'profile'
 
 const PLAYER_NAV: { section: PlayerSection; label: string; icon: IconName }[] = [
   { section: 'home', label: 'Inicio', icon: 'home' },
@@ -12,6 +12,10 @@ const PLAYER_NAV: { section: PlayerSection; label: string; icon: IconName }[] = 
   { section: 'tournaments', label: 'Torneos', icon: 'trophy' },
   { section: 'profile', label: 'Perfil', icon: 'user' },
 ]
+
+/** Barra superior (≥768 px): suma Novedades. La barra inferior del celular conserva sus 5 accesos; Novedades se alcanza desde Inicio, la campanita y «Cuenta». */
+const NEWS_ITEM: { section: PlayerSection; label: string; icon: IconName } = { section: 'news', label: 'Novedades', icon: 'news' }
+const PLAYER_TOPNAV = [...PLAYER_NAV.slice(0, 3), NEWS_ITEM, ...PLAYER_NAV.slice(3)]
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
@@ -37,15 +41,17 @@ export type PlayerShellProps = {
   onOpenAdmin?: () => void
   onSignOut: () => void
   signingOut: boolean
+  /** Campanita de avisos (se arma en PlayerPortal con el cliente y el club activos). */
+  notifications?: ReactNode
   children: ReactNode
 }
 
 /** Shell del portal: encabezado con escudo, navegación superior (≥768 px) y barra inferior con «Reservar» destacado en celular. */
-export function PlayerShell({ section, onNavigate, club, access, onSelectClub, userEmail, onOpenAdmin, onSignOut, signingOut, children }: PlayerShellProps) {
+export function PlayerShell({ section, onNavigate, club, access, onSelectClub, userEmail, onOpenAdmin, onSignOut, signingOut, notifications, children }: PlayerShellProps) {
   const [account, setAccount] = useState(false)
   const scrolled = useScrolled()
   const clock = useClubClock(club.timezone)
-  const current = PLAYER_NAV.find((item) => item.section === section)
+  const current = PLAYER_TOPNAV.find((item) => item.section === section)
   const contentRef = useRef<HTMLElement>(null)
   useEffect(() => { contentRef.current?.focus({ preventScroll: true }) }, [section])
   const go = (next: PlayerSection) => { setAccount(false); onNavigate(next) }
@@ -65,15 +71,18 @@ export function PlayerShell({ section, onNavigate, club, access, onSelectClub, u
             <span className="player-brand-text hide-mobile"><strong className="display">{club.club_name}</strong><small>Portal de jugadores</small></span>
           </button>
           <nav className="player-topnav" aria-label="Portal de jugadores">
-            {PLAYER_NAV.map((item) => (
+            {PLAYER_TOPNAV.map((item) => (
               <button key={item.section} type="button" className={`player-toplink ${section === item.section ? 'is-active' : ''} ${item.section === 'book' ? 'is-cta' : ''}`} aria-current={section === item.section ? 'page' : undefined} onClick={() => go(item.section)}>
                 <Icon name={item.icon} size={18} />{item.label}
               </button>
             ))}
           </nav>
+          <div className="player-tools">
+            {notifications}
           <button type="button" className="player-avatar" aria-label="Cuenta" aria-haspopup="dialog" onClick={() => setAccount(true)}>
             <Avatar name={club.full_name} size="sm" />
           </button>
+          </div>
         </div>
       </header>
 
@@ -107,6 +116,7 @@ export function PlayerShell({ section, onNavigate, club, access, onSelectClub, u
           )}
           <div className="rt-account-actions">
             {onOpenAdmin && <button type="button" className="menu-item" onClick={onOpenAdmin}><Icon name="swap" />Cambiar a administración</button>}
+            <button type="button" className="menu-item" onClick={() => go('news')}><Icon name="news" />Novedades del club</button>
             <button type="button" className="menu-item" onClick={() => go('profile')}><Icon name="user" />Mi perfil</button>
             <button type="button" className="menu-item" onClick={onSignOut} disabled={signingOut}><Icon name="logout" />{signingOut ? 'Cerrando…' : 'Cerrar sesión'}</button>
           </div>

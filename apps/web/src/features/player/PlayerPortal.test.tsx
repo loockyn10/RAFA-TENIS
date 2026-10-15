@@ -184,4 +184,65 @@ describe('PlayerPortal', () => {
     expect(await screen.findByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cambiar a administración' })).not.toBeInTheDocument()
   })
+
+  describe('Novedades y avisos', () => {
+    const shiftDay = (days: number) => { const date = new Date(Date.now() + days * 86_400_000); return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(date) }
+    const post = (id: string, patch: Record<string, unknown> = {}) => ({ id, kind: 'news', title: `Título ${id}`, body: `Descripción ${id}`, is_featured: false, event_date: null, event_time: null, location: null, image_path: null, tournament_id: null, published_at: '2026-10-01T12:00:00Z', ...patch })
+
+    it('consulta las novedades solo del club elegido y las muestra en su sección', async () => {
+      const { client, rpc } = makeClient({
+        club_posts_feed: () => ({ data: [post('n1', { title: 'Cierre por lluvia' }), post('e1', { kind: 'event', title: 'Peña de fin de mes', event_date: shiftDay(5), event_time: '21:00:00', location: 'Quincho' })], error: null }),
+      })
+      renderPortal(client)
+      expect(await screen.findByRole('heading', { name: 'Hola, Juan' })).toBeInTheDocument()
+      expect(rpc).toHaveBeenCalledWith('club_posts_feed', { p_club_id: 'club-a' })
+      // Inicio ofrece el próximo evento y lleva a Novedades.
+      fireEvent.click(await screen.findByRole('button', { name: /Próximo evento/ }))
+      expect(await screen.findByRole('heading', { name: 'Novedades' })).toBeInTheDocument()
+      expect(screen.getByText('Cierre por lluvia')).toBeInTheDocument()
+      expect(within(screen.getByRole('region', { name: 'Próximos eventos' })).getByText('Peña de fin de mes')).toBeInTheDocument()
+    })
+
+    it('los borradores no llegan al portal: el servidor solo devuelve publicadas y la pantalla no inventa otras', async () => {
+      const { client } = makeClient({ club_posts_feed: () => ({ data: [], error: null }) })
+      renderPortal(client)
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Cuenta' }))[0])
+      fireEvent.click(await screen.findByRole('button', { name: 'Novedades del club' }))
+      expect(await screen.findByText('Todavía no hay novedades')).toBeInTheDocument()
+    })
+
+    it('al cambiar de club se piden y muestran las novedades del otro club', async () => {
+      const { client, rpc } = makeClient({
+        club_posts_feed: (args) => ({ data: args.p_club_id === 'club-a' ? [post('a1', { title: 'Del club A' })] : [post('b1', { title: 'Del club B' })], error: null }),
+      })
+      renderPortal(client, [clubA, clubB])
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Cuenta' }))[0])
+      fireEvent.click(await screen.findByRole('button', { name: 'Novedades del club' }))
+      expect(await screen.findByText('Del club A')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Cuenta' }))
+      fireEvent.change(within(await screen.findByRole('dialog')).getByLabelText('Club'), { target: { value: 'club-b' } })
+      await waitFor(() => expect(rpc).toHaveBeenCalledWith('club_posts_feed', { p_club_id: 'club-b' }))
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Cuenta' }))[0])
+      fireEvent.click(await screen.findByRole('button', { name: 'Novedades del club' }))
+      expect(await screen.findByText('Del club B')).toBeInTheDocument()
+      expect(screen.queryByText('Del club A')).not.toBeInTheDocument()
+    })
+
+    it('abrir un aviso de publicación lleva a Novedades con el detalle abierto; uno de reserva lleva a Mis turnos', async () => {
+      const notification = (id: string, target_type: 'post' | 'reservation', target_id: string) => ({ id, club_id: 'club-a', kind: target_type === 'post' ? 'news_published' : 'reservation_confirmed', title: `Aviso ${id}`, body: null, target_type, target_id, created_at: new Date().toISOString(), read_at: null })
+      const { client, rpc } = makeClient({
+        club_posts_feed: () => ({ data: [post('p9', { title: 'Publicación del aviso', body: 'Detalle completo.' })], error: null }),
+        my_notifications: () => ({ data: { unread: 2, items: [notification('n-post', 'post', 'p9'), notification('n-res', 'reservation', 'r1')] }, error: null }),
+      })
+      renderPortal(client)
+      fireEvent.click(await screen.findByRole('button', { name: 'Avisos, 2 sin leer' }))
+      fireEvent.click(await screen.findByRole('button', { name: /Aviso n-post/ }))
+      expect(await screen.findByRole('dialog', { name: 'Publicación del aviso' })).toBeInTheDocument()
+      expect(rpc).toHaveBeenCalledWith('mark_notification_read', { p_notification_id: 'n-post' })
+      fireEvent.click(within(screen.getByRole('dialog', { name: 'Publicación del aviso' })).getAllByRole('button', { name: 'Cerrar' })[0])
+      fireEvent.click(screen.getByRole('button', { name: /^Avisos/ }))
+      fireEvent.click(await screen.findByRole('button', { name: /Aviso n-res/ }))
+      expect(await screen.findByRole('heading', { name: 'Mis turnos' })).toBeInTheDocument()
+    })
+  })
 })

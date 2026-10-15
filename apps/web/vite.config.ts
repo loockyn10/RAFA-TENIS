@@ -26,6 +26,9 @@ export default defineConfig({
       workbox: {
         cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
+        // Web Push (Sprint 15): se EXTIENDE el Service Worker generado, no se crea otro. push-sw.js se carga con importScripts dentro de sw.js.
+        importScripts: ['push-sw.js'],
+        globIgnores: ['push-sw.js'],
       },
     }),
   ],

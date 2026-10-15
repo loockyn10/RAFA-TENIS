@@ -1,0 +1,112 @@
+/*
+ * Sprint 15: Novedades (noticias y eventos) y centro de notificaciones.
+ * Solo composición con los tokens y componentes existentes (tarjetas, insignias, modales). No redefine el sistema de diseño.
+ */
+
+/* ── Portal: contenedor y listas ───────────────────────────────── */
+.nv-page { display: grid; gap: var(--s-6); }
+.nv-list { display: grid; gap: var(--s-3); }
+@media (min-width: 900px) { .nv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.nv-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: var(--s-4); text-align: left; transition: border-color var(--dur-fast), box-shadow var(--dur-fast); }
+.nv-card:hover { border-color: var(--green-600); }
+.nv-card.is-featured { box-shadow: 0 0 0 2px var(--ball-500), var(--shadow-1); }
+.nv-card.is-past { opacity: 0.8; }
+.nv-main { flex: 1; display: grid; gap: 6px; min-width: 0; }
+.nv-title { font-size: 1.125rem; line-height: 1.25; overflow-wrap: anywhere; }
+.nv-meta { display: flex; flex-wrap: wrap; gap: 4px var(--s-4); color: var(--text-muted); font-size: var(--fs-sm); }
+.nv-meta > span { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.nv-excerpt { color: var(--text-muted); font-size: 0.9375rem; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.nv-date-line { color: var(--text-subtle); font-size: 0.8125rem; font-weight: 600; }
+
+/* Bloque de fecha del evento: protagonista de la tarjeta. */
+.nv-date { flex: none; display: grid; justify-items: center; align-content: center; gap: 0; width: 68px; padding: 8px 4px; border-radius: var(--r-md); background: var(--green-900); color: var(--text-on-dark); line-height: 1; }
+.nv-date small { color: var(--text-on-dark-muted); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.nv-date b { color: var(--ball-500); font-size: 2rem; line-height: 1.05; }
+.nv-date.is-muted { background: var(--chalk-200); color: var(--ink-700); }
+.nv-date.is-muted small { color: var(--ink-600); }
+.nv-date.is-muted b { color: var(--ink-700); }
+
+.nv-thumb { flex: none; width: 72px; height: 72px; border-radius: var(--r-md); object-fit: cover; background: var(--chalk-200); }
+@media (max-width: 479px) { .nv-event .nv-thumb { display: none; } }
+
+/* Comunicados: la portada, cuando existe, va arriba y a todo el ancho. */
+.nv-news { align-items: stretch; }
+.nv-news.has-image { display: grid; gap: var(--s-3); padding: 0; overflow: hidden; }
+.nv-news.has-image .nv-main { padding: 0 var(--s-4) var(--s-4); }
+.nv-cover { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--chalk-200); }
+
+/* Detalle */
+.nv-detail { display: grid; gap: var(--s-4); }
+.nv-detail-image { display: block; width: 100%; max-height: 260px; border-radius: var(--r-md); object-fit: cover; background: var(--chalk-200); }
+.nv-facts { display: grid; gap: var(--s-2); padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--surface-sunken); border: 1px solid var(--border); }
+.nv-facts > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: var(--s-2); align-items: baseline; }
+.nv-facts dt { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: var(--fs-sm); font-weight: 600; }
+.nv-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.nv-body { white-space: pre-line; overflow-wrap: anywhere; line-height: var(--lh-body); }
+
+/* ── Administración ────────────────────────────────────────────── */
+.nv-admin-list { display: grid; gap: var(--s-3); margin: 0; padding: 0; list-style: none; }
+.nv-admin-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-3) var(--s-4); align-items: start; }
+.nv-admin-main { display: grid; gap: 6px; min-width: 0; }
+.nv-admin-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s-2); padding-top: var(--s-3); border-top: 1px solid var(--border); }
+@media (max-width: 479px) { .nv-admin-actions > .btn { flex: 1 1 auto; } .nv-admin-row .nv-thumb { width: 56px; height: 56px; } }
+
+.nv-form { display: grid; gap: var(--s-4); }
+.nv-kind { display: grid; gap: var(--s-2); }
+.nv-when { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+@media (max-width: 399px) { .nv-when { grid-template-columns: 1fr; } }
+.nv-image-field { display: grid; gap: var(--s-3); }
+.nv-image-preview { display: block; width: 100%; max-height: 220px; border-radius: var(--r-md); object-fit: cover; border: 1px solid var(--border); }
+.nv-image-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.nv-file { position: relative; cursor: pointer; }
+.nv-file:focus-within { box-shadow: var(--ring); }
+.nv-publish { display: grid; gap: var(--s-4); }
+
+/* ── Campanita y centro de notificaciones ──────────────────────── */
+.np-bell { position: relative; }
+.np-badge { position: absolute; top: 2px; right: 0; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--clay-500); color: #fff; font-size: 0.6875rem; font-weight: 800; line-height: 1; box-shadow: 0 0 0 2px var(--bg-chrome); }
+.np-panel { display: grid; gap: var(--s-3); }
+.np-toolbar { display: flex; justify-content: flex-end; }
+.np-list { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.np-item { position: relative; display: flex; align-items: flex-start; gap: var(--s-3); width: 100%; padding: var(--s-3); border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); text-align: left; transition: border-color var(--dur-fast), background-color var(--dur-fast); }
+.np-item:hover { border-color: var(--green-600); }
+.np-item.is-unread { background: var(--green-50); border-color: var(--green-200); }
+.np-icon { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--green-100); color: var(--green-800); }
+.np-icon-clay { background: var(--clay-100); color: var(--clay-700); }
+.np-icon-ball { background: var(--ball-100); color: var(--ball-700); }
+.np-main { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.np-main strong { font-size: 0.9375rem; overflow-wrap: anywhere; }
+.np-main > span { color: var(--text-muted); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.np-main small { color: var(--text-subtle); font-size: 0.75rem; font-weight: 600; }
+.np-dot { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--clay-500); }
+
+.np-push { display: grid; gap: var(--s-2); }
+.np-push-title { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-md); font-weight: 700; }
+.np-push-text { color: var(--text-muted); font-size: var(--fs-sm); }
+.np-push-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2); }
+.np-push-error { display: flex; align-items: flex-start; gap: 6px; color: var(--red-600); font-size: var(--fs-sm); }
+.np-push .btn { justify-self: start; }
+
+/* ── Integración en los encabezados ────────────────────────────── */
+.player-tools { display: flex; flex: none; align-items: center; gap: var(--s-1); margin-left: auto; }
+.player-tools .player-avatar { margin-left: 0; }
+@media (min-width: 768px) { .player-tools { margin-left: 0; } }
+.p-card-icon-ball { background: var(--ball-100); color: var(--ball-700); }
+
+/* La barra superior de administración es clara en tablet/escritorio y verde en celular: la campanita se adapta a cada una. */
+@media (min-width: 768px) {
+  .topbar .np-bell { border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-700); }
+  .topbar .np-bell:hover:not(:disabled) { border-color: var(--green-600); background: var(--green-50); }
+  .topbar .np-badge { box-shadow: 0 0 0 2px var(--surface); }
+}
+/* Tablet: con la campanita, «Venta rápida» pasa a ícono para que la fecha del club no se corte (el nombre accesible se conserva). */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .topbar-quick-sale .btn-label { display: none; }
+  .topbar-quick-sale { padding-inline: 12px; }
+}
+/* Celulares muy angostos: con campanita + ajustes + cuenta, los botones de la barra se compactan para no tocar el escudo central. */
+@media (max-width: 359px) {
+  .topbar-actions .icon-btn { width: 34px; height: 34px; }
+  .topbar-avatar .avatar { width: 28px; height: 28px; font-size: 0.6875rem; }
+}

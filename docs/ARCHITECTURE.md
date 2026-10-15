@@ -98,6 +98,12 @@ Cada cancha pertenece a un club. La reserva debe relacionarse con una cancha del
 - Cálculo (única fórmula en `private.court_billable_amount`, replicada solo como vista previa en `courtChargeUtils.ts`): `tarifa/hora × minutos / 60` al centavo; modo opcional «redondear hacia arriba» a bloques de 15/30/60 min.
 - UI: sección «Cobro de cancha» en el detalle de reserva (`features/courtCharges/CourtChargeSection.tsx`), tarifas en Configuración (`CourtRatesCard.tsx`) y «Cuenta corriente» en la ficha del jugador (`features/account/PersonAccount.tsx`; «Cobrar» abre el cobro real de cada módulo, cantina navega a Consumos pendientes).
 
+### Sprint 15 — Novedades, notificaciones y Web Push
+- Entidades (`20261015000000_news_notifications_push.sql`): `club_posts` (kind news|event, estado draft|published|archived, constraints de texto plano, fechas y ruta de imagen), `notifications` (destinatario = `auth.users`, `UNIQUE (user_id, dedupe_key)`), `push_subscriptions` (endpoint único, claves no legibles por el cliente) y `push_deliveries` (cola con estado, intentos y bloqueo). Los destinatarios se resuelven por `club_person_auth_links` (cuenta ↔ ficha activa): una persona sin cuenta jamás recibe filas.
+- Escritura solo por RPC `SECURITY DEFINER` con permisos verificados en SQL (owner/admin). Lectura de publicadas por RPC para staff y jugadores vinculados; borradores únicamente por RLS de owner/admin. Imágenes en bucket privado `club-post-images` (carpeta = club, nombre aleatorio, sin política de UPDATE → sin sobrescrituras) y URLs firmadas de 1 h.
+- Avisos de reservas: disparadores `AFTER INSERT/UPDATE OF status` sobre `reservations` (mejor esfuerzo). Recordatorios: `generate_reservation_reminders` (service_role/pg_cron), clave por reserva + instante de inicio. Push: `notifications` → trigger crea `push_deliveries` por dispositivo → Edge Function `dispatch-push` (`claim_push_deliveries`/`complete_push_delivery`, solo service_role). La clave VAPID privada vive únicamente como secreto de esa función.
+- Cliente: `features/news` (administración y portal), `features/notifications` (campanita, push, hook de lectura periódica). El Service Worker de la PWA se extiende con `workbox.importScripts`; no existe un segundo SW.
+
 ## Operación e infraestructura
 - `.env.example` con nombres de variables públicas sin credenciales reales; `.env.local` ignorado.
 - Ninguna migración creada equivale a aplicada; distinguir verificado local/remoto/producción.

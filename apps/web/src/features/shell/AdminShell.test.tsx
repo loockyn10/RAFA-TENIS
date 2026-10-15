@@ -71,4 +71,16 @@ describe('AdminShell', () => {
     expect(within(account).queryByLabelText('Club')).not.toBeInTheDocument()
     expect(within(account).queryByRole('button', { name: 'Mi portal de jugador' })).not.toBeInTheDocument()
   })
+
+  it('Novedades está disponible para todo el personal (el staff solo consulta) y se navega a ella', () => {
+    const props = setup({ role: 'staff', canManage: false })
+    fireEvent.click(sidebar().getByRole('button', { name: /Novedades/ }))
+    expect(props.onNavigate).toHaveBeenCalledWith('news')
+  })
+
+  it('muestra la campanita de avisos cuando el panel la provee y no ocupa la barra inferior', () => {
+    setup({ notifications: <button type="button">Avisos de prueba</button> })
+    expect(screen.getByRole('button', { name: 'Avisos de prueba' })).toBeInTheDocument()
+    expect(within(screen.getByRole('navigation', { name: 'Accesos principales' })).queryByRole('button', { name: /Novedades/ })).not.toBeInTheDocument()
+  })
 })

@@ -9,7 +9,8 @@ import { PAYMENT_LABELS } from '../../design/paymentLabels'
 import { formatMoney, periodLabel } from '../fees/feeUtils'
 import { courtShort } from '../reservations/occupationView'
 import { isoToDateAndTime, todayInTimezone } from '../reservations/reservationUtils'
-import type { OnlineBookingSettings, PaymentMethod, PlayerAvailabilityCourt, PlayerClubAccess, PlayerReservation } from '../../types/domain'
+import type { ClubPost, OnlineBookingSettings, PaymentMethod, PlayerAvailabilityCourt, PlayerClubAccess, PlayerReservation } from '../../types/domain'
+import { eventTimeLabel, nextEvent, relativeEventLabel } from '../news/newsUtils'
 import {
   bookingErrorMessage, buildTimeSlots, cancelErrorMessage, cancellationLabel, dayLongLabel, dayOfMonth, entryIncludesPlayer, findMyTournament,
   futureConfirmedCount, groupReservations, groupSlotsByDayPart, publishedTournaments, relativeDayLabel, shortDateLabel, weekdayShortLabel,
@@ -38,11 +39,13 @@ function Guard({ remote, onRetry, skeleton = 3, children }: { remote: Remote<unk
 }
 
 // ── Inicio ──────────────────────────────────────────────────────────
-export function PlayerHome({ club, profile, reservations, dues, tournaments, onNavigate }: { club: PlayerClubAccess; profile: PlayerProfileData; reservations: PlayerReservation[]; dues: Remote<PlayerDue[]>; tournaments: Remote<PortalTournament[]>; onNavigate: Go }) {
+export function PlayerHome({ club, profile, reservations, dues, tournaments, news, onNavigate }: { club: PlayerClubAccess; profile: PlayerProfileData; reservations: PlayerReservation[]; dues: Remote<PlayerDue[]>; tournaments: Remote<PortalTournament[]>; news: Remote<ClubPost[]>; onNavigate: Go }) {
   const today = todayInTimezone(club.timezone)
   const next = groupReservations(reservations).upcoming[0]
   const due = dues.status === 'ready' ? dues.data[0] : undefined
   const mine = tournaments.status === 'ready' ? findMyTournament(tournaments.data, profile.full_name) : null
+  const upcoming = news.status === 'ready' ? nextEvent(news.data, today) : null
+  const recentNews = news.status === 'ready' ? news.data.find((post) => post.kind === 'news') : undefined
   const first = profile.full_name.trim().split(/\s+/)[0] ?? ''
   return (
     <div className="p-home">
@@ -61,6 +64,28 @@ export function PlayerHome({ club, profile, reservations, dues, tournaments, onN
       <Button variant="accent" size="lg" block icon="plus" onClick={() => onNavigate('book')} className="p-cta">Reservar cancha</Button>
 
       <div className="p-cards">
+        {upcoming?.event_date && (
+          <button type="button" className="card p-card" onClick={() => onNavigate('news')}>
+            <span className="p-card-icon p-card-icon-ball"><Icon name="calendar" size={22} /></span>
+            <span className="p-card-main">
+              <span className="kicker">Próximo evento · {relativeEventLabel(upcoming.event_date, today)}</span>
+              <strong>{upcoming.title}</strong>
+              <span>{shortDateLabel(upcoming.event_date)} · {eventTimeLabel(upcoming.event_time)}{upcoming.location ? ` · ${upcoming.location}` : ''}</span>
+            </span>
+            <Icon name="chevronRight" size={18} className="row-chevron" />
+          </button>
+        )}
+        {!upcoming && recentNews && (
+          <button type="button" className="card p-card" onClick={() => onNavigate('news')}>
+            <span className="p-card-icon"><Icon name="news" size={22} /></span>
+            <span className="p-card-main">
+              <span className="kicker">Novedades del club</span>
+              <strong>{recentNews.title}</strong>
+              <span>Ver todas las novedades</span>
+            </span>
+            <Icon name="chevronRight" size={18} className="row-chevron" />
+          </button>
+        )}
         {due && <DueCard due={due} today={today} onOpen={() => onNavigate('profile')} />}
         {mine && (
           <button type="button" className="card p-card" onClick={() => onNavigate('tournaments')}>

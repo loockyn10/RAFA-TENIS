@@ -323,3 +323,46 @@ export type AccountItem = {
   status: AccountItemStatus
   reservation_id: string | null
 }
+
+// ── Novedades, notificaciones y push (Sprint 15) ──
+export type PostKind = 'news' | 'event'
+export type PostStatus = 'draft' | 'published' | 'archived'
+/** Publicación tal como la leen los jugadores y el personal (solo publicadas). */
+export type ClubPost = {
+  id: string
+  kind: PostKind
+  title: string
+  body: string
+  is_featured: boolean
+  /** Fecha del evento (AAAA-MM-DD, calendario del club). Null en los comunicados. */
+  event_date: string | null
+  /** Hora local (HH:MM:SS). Opcional incluso en eventos. */
+  event_time: string | null
+  location: string | null
+  image_path: string | null
+  tournament_id: string | null
+  published_at: string | null
+}
+/** Fila completa para administración (incluye estado y marcas de envío). */
+export type AdminClubPost = ClubPost & {
+  club_id: string
+  status: PostStatus
+  archived_at: string | null
+  notified_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type NotificationKind = 'news_published' | 'event_published' | 'reservation_confirmed' | 'reservation_cancelled' | 'reservation_reminder'
+export type AppNotification = {
+  id: string
+  club_id: string
+  kind: NotificationKind
+  title: string
+  body: string | null
+  target_type: 'post' | 'reservation' | null
+  target_id: string | null
+  created_at: string
+  read_at: string | null
+}
+export type NotificationsSnapshot = { unread: number; items: AppNotification[] }

@@ -56,6 +56,15 @@ Auditoría sin correcciones: 0 críticos, 1 alto, 4 medios, 8 bajos. **Sprint 10
 - [ ] Anular un cargo/pago no es idempotente ante reintentos (igual que las anulaciones existentes).
 - [ ] Verificación visual autenticada de las pantallas nuevas (360/390/768/1440 px): no realizada en este sprint.
 
+## Sprint 15 — Novedades, notificaciones, push y recordatorios (local, sin aplicar en Supabase)
+- [ ] Aplicar `20261015000000_news_notifications_push.sql` tras confirmar el historial 01–14 y desplegar el frontend; pasos y orden en `CURRENT_STATE.md` («Sprint 15 — configuración y pasos de activación»).
+- [ ] Generar claves VAPID, cargar secretos de `dispatch-push`, desplegar la función y **probar un push real** en Android (Chrome) y en iPhone con la PWA instalada. Hoy el push está implementado pero **no verificado de punta a punta**; también validar `web-push` bajo Deno en Supabase.
+- [ ] Habilitar `pg_cron`/`pg_net` y ejecutar a mano `supabase/ops/schedule-notifications.sql`; verificar `cron.job` y `cron.job_run_details`. Sin eso no hay recordatorios de reservas.
+- [ ] Recorrido autenticado contra Supabase real (owner, admin, staff, jugador de dos clubes): publicar con y sin aviso, imagen de portada (límites de tipo/tamaño del bucket, URL firmada), borrador invisible, campanita, activar/desactivar push, aislamiento entre clubes. Revisar visualmente en un celular real y Safari/iOS (el SW no pudo registrarse en el navegador integrado).
+- [ ] Decisión de producto: anticipación del recordatorio (hoy 24 h, parámetro de la función) y si debe configurarse desde la app; si se quiere avisar el cambio de horario o la reactivación de una reserva.
+- [ ] Mejora futura: preferencias por tipo de aviso; purga de notificaciones leídas antiguas (función para cron); aviso de nueva clase/torneo propio; limpieza de imágenes huérfanas; paginación del feed.
+- [ ] Mejora futura: que el personal operativo (staff) pueda redactar borradores (hoy solo owner/admin, como pide el sprint).
+
 ## Diseño — próximos pasos
 - [ ] Confirmar con el club si `apps/web/public/branding/logoRafa.png` es el escudo definitivo y, si corresponde, aportar referencias visuales adicionales.
 - [x] Sprint 10C.2: rediseñar Cuotas, Jugadores, Escuela, Torneos, Cantina y configuraciones, sin alterar los flujos funcionales.

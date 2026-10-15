@@ -4,7 +4,7 @@ import { useScrolled } from '../../design/media'
 import type { Club, ClubRole } from '../../types/domain'
 import { roleLabel } from './roleLabel'
 
-export type AdminSection = 'home' | 'reservations' | 'canteen' | 'people' | 'fees' | 'school' | 'tournaments' | 'courts' | 'settings' | 'playerAccess'
+export type AdminSection = 'home' | 'reservations' | 'canteen' | 'people' | 'fees' | 'school' | 'tournaments' | 'news' | 'courts' | 'settings' | 'playerAccess'
 
 type NavItem = { section: AdminSection; label: string; short?: string; icon: IconName; managersOnly?: boolean }
 const NAV_GROUPS: { group: string; items: NavItem[] }[] = [
@@ -18,6 +18,7 @@ const NAV_GROUPS: { group: string; items: NavItem[] }[] = [
     { section: 'fees', label: 'Cuotas', icon: 'wallet', managersOnly: true },
     { section: 'school', label: 'Escuela de tenis', short: 'Escuela', icon: 'school' },
     { section: 'tournaments', label: 'Torneos', icon: 'trophy' },
+    { section: 'news', label: 'Novedades', icon: 'news' },
   ] },
   { group: 'Configuración', items: [
     { section: 'courts', label: 'Canchas', icon: 'court' },
@@ -44,6 +45,8 @@ export type AdminShellProps = {
   onNewBlock: () => void
   onNewLesson: () => void
   onNewPerson: () => void
+  /** Campanita de avisos (se arma en AdminPanel con el cliente y el club activos). */
+  notifications?: ReactNode
   children: ReactNode
 }
 
@@ -121,8 +124,9 @@ export function AdminShell(props: AdminShellProps) {
             <Crest size={60} />
           </button>
           <div className="topbar-actions">
-            <Button variant="secondary" icon="cart" onClick={() => go('canteen')} className="hide-mobile">Venta rápida</Button>
+            <Button variant="secondary" icon="cart" onClick={() => go('canteen')} className="hide-mobile topbar-quick-sale" aria-label="Venta rápida">Venta rápida</Button>
             <Button variant="accent" icon="plus" onClick={act(props.onNewReservation)} className="hide-mobile">Nueva reserva</Button>
+            {props.notifications}
             {canManage && <IconButton icon="settings" label="Configuración del club" variant="on-dark" className={`show-mobile ${section === 'settings' ? 'is-current' : ''}`} onClick={() => go('settings')} />}
             <button type="button" className="topbar-avatar show-mobile" aria-label="Cuenta" aria-haspopup="dialog" onClick={() => setSheet('account')}>
               <Avatar name={props.userEmail || 'Cuenta'} size="sm" />

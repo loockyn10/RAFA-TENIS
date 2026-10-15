@@ -67,6 +67,13 @@ const PATHS = {
   undo: 'M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
   bracket: 'M3 5h5v4.5H3zM3 14.5h5V19H3zM8 7.25h3v9.5H8M11 12h4M15 9.75h6v4.5h-6z',
+  bell: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0',
+  bellOff: 'M3 3l18 18M8.7 3.9A6 6 0 0 1 18 8c0 3.2.6 5.4 1.3 6.9M6 8c0 7-3 9-3 9h13M10.3 21a1.94 1.94 0 0 0 3.4 0',
+  news: 'M4 5h13v14H4zM17 9h3v8a2 2 0 0 1-2 2M7.5 8.5h6M7.5 12h6M7.5 15.5h4',
+  mapPin: 'M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+  image: 'M4 5h16v14H4zM4 16l4.5-4.5 4 4 3-3L20 17M9 9.5h.01',
+  archive: 'M3 4h18v4H3zM5 8v11h14V8M10 12h4',
+  star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
 } as const
 
 export type IconName = keyof typeof PATHS

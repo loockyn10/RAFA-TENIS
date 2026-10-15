@@ -4,11 +4,12 @@ import { useAuth } from '../../auth/AuthProvider'
 import { AuthLayout, AuthLoading, AuthNotice, SignOutButton } from '../../auth/AuthLayout'
 import { AdminShell, type AdminSection } from '../shell/AdminShell'
 import { SkeletonCards } from '../../design/ui'
+import { NotificationBell } from '../notifications/NotificationBell'
 import type { CourtPatch } from '../courts/CourtList'
 import type { CalendarFormRequest } from '../reservations/ReservationCalendar'
 import type { HomeSlotRequest } from '../home/AdminHome'
 import { todayInTimezone } from '../reservations/reservationUtils'
-import type { Club, ClubMembership, ClubRole, Court } from '../../types/domain'
+import type { AppNotification, Club, ClubMembership, ClubRole, Court } from '../../types/domain'
 
 type MembershipRow = { club_id: string; role: ClubRole }
 
@@ -22,6 +23,7 @@ const PeoplePanel = lazy(() => import('../people/PeoplePanel').then((module) => 
 const FinancePanel = lazy(() => import('../fees/FinancePanel').then((module) => ({ default: module.FinancePanel })))
 const SettingsPanel = lazy(() => import('../settings/SettingsPanel').then((module) => ({ default: module.SettingsPanel })))
 const PlayerAccessPanel = lazy(() => import('../player/PlayerAccessPanel').then((module) => ({ default: module.PlayerAccessPanel })))
+const NewsAdminPanel = lazy(() => import('../news/NewsAdminPanel').then((module) => ({ default: module.NewsAdminPanel })))
 const CourtsPanel = lazy(() => import('../courts/CourtList').then((module) => ({ default: module.CourtsPanel })))
 
 export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPlayerPortal?: () => void }) {
@@ -152,6 +154,9 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   }
   const requestPerson = () => { setPersonRequest((current) => current + 1); changeSection('people') }
 
+  /** Al abrir un aviso se va a la sección donde ocurrió: reservas para turnos, novedades para publicaciones. */
+  const openNotification = (notification: AppNotification) => changeSection(notification.target_type === 'reservation' ? 'reservations' : 'news')
+
   if (status === 'loading') return <AuthLoading message="Cargando acceso administrativo…" />
   if (status === 'error') return <AuthLayout><AuthNotice kicker="Administración" title="No pudimos cargar tu acceso" tone="error" action={<SignOutButton onSignOut={() => void closeSession()} busy={isSigningOut} />}><p>{error}</p></AuthNotice></AuthLayout>
   if (memberships.length === 0 || !selectedClub) return <AuthLayout><AuthNotice kicker="Acceso restringido" title="No tenés acceso administrativo a ningún club." action={<SignOutButton onSignOut={() => void closeSession()} busy={isSigningOut} />}><p>Pedile a la persona responsable que verifique tu membresía administrativa.</p></AuthNotice></AuthLayout>
@@ -173,6 +178,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
       onNewBlock={() => requestForm('block')}
       onNewLesson={requestLesson}
       onNewPerson={requestPerson}
+      notifications={<NotificationBell client={client} clubId={selectedClub.id} timezone={selectedClub.timezone} onOpenNotification={openNotification} />}
     >
       {error && <p className="inline-alert inline-alert-danger" role="alert">{error}</p>}
       <Suspense fallback={<div className="rt" role="status" aria-label="Cargando sección"><SkeletonCards count={3} height={96} /></div>}>
@@ -182,6 +188,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
       {effectiveSection === 'school' && <div className="rt"><SchoolPanel client={client} club={selectedClub} courts={courts} canManageCoaches={canManage} requestedLessonId={requestedLessonId} onRequestedLessonHandled={() => setRequestedLessonId(null)} requestedCreation={lessonCreation} onRequestedCreationHandled={() => setLessonCreation(null)} /></div>}
       {effectiveSection === 'tournaments' && <div className="rt"><TournamentPanel client={client} club={selectedClub} courts={courts} canManage={canManage} requestedReservationId={requestedTournamentReservationId} onRequestedReservationHandled={() => setRequestedTournamentReservationId(null)} /></div>}
       {effectiveSection === 'people' && <div className="rt"><PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} createRequest={personRequest} onCreateRequestHandled={() => setPersonRequest(0)} onNavigate={changeSection} onOpenCanteenPending={(name) => { setCanteenPendingSearch(name); setSection('canteen'); if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' }) }} /></div>}
+      {effectiveSection === 'news' && <div className="rt"><NewsAdminPanel client={client} club={selectedClub} canManage={canManage} /></div>}
       {effectiveSection === 'fees' && canManage && <div className="rt"><FinancePanel client={client} club={selectedClub} canManage={canManage} /></div>}
       {effectiveSection === 'settings' && canManage && <div className="rt"><SettingsPanel client={client} club={selectedClub} courts={courts} onNavigate={changeSection} /></div>}
       {effectiveSection === 'playerAccess' && canManage && <div className="rt"><PlayerAccessPanel client={client} club={selectedClub} onOpenSettings={() => changeSection('settings')} /></div>}
