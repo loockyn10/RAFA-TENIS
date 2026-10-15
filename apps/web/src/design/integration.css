@@ -45,3 +45,19 @@
 
 /* Integración 02: separación entre el avatar y el nombre dentro de un chip (profesores). */
 .chip-avatar { display: inline-flex; align-items: center; margin-right: 8px; vertical-align: middle; }
+
+/* ── Sprint 14: cobros de cancha, tarifas y cuenta corriente (solo composición de componentes existentes) ── */
+.rt .person-chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.rt .amount-row { display: grid; gap: var(--s-2); padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-sunken); }
+.rt .amount-row-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--s-3); }
+.rt .amount-row-head > span { flex: 1 1 120px; font-weight: 600; }
+.rt .rate-grid { display: grid; grid-template-columns: 1fr; gap: var(--s-4); }
+.rt .rate-block { display: grid; gap: var(--s-2); align-content: start; }
+@media (min-width: 720px) { .rt .rate-grid { grid-template-columns: 1fr 1fr; } }
+.rt .account-list { display: grid; border: 1px solid var(--border); border-radius: var(--r-md); }
+.rt .account-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2) var(--s-3); padding: 12px; }
+.rt .account-row + .account-row { border-top: 1px solid var(--border); }
+.rt .account-row.is-voided { opacity: 0.65; }
+.rt .account-row-main { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; font-size: 0.9375rem; }
+.rt .account-row-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.rt .account-row-amounts { color: var(--text-muted); font-size: 0.875rem; }

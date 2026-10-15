@@ -45,6 +45,17 @@ Auditoría sin correcciones: 0 críticos, 1 alto, 4 medios, 8 bajos. **Sprint 10
 
 - [ ] (Residual SEC-02, bajo) `cancel_player_reservation` y las RPC de torneos leen la fila antes de validar permisos (oráculo de existencia de UUID solo para autenticados). Corregir con el patrón de 10B.1 (leer solo `club_id`, validar, luego bloquear) cuando se toquen esas funciones.
 
+## Sprint 14 — cobros de canchas y cuenta corriente (local, sin aplicar en Supabase)
+- [ ] Aplicar `20261014070000_court_charges_and_account.sql` (después de 10B.2) y desplegar el frontend; recorrer con cuentas reales owner/admin/staff: configurar tarifas, cargar un cargo desde una reserva, pago parcial/total, anulación de pago, cuenta corriente.
+- [ ] **Rafa define las tarifas reales** de alquiler e iluminación y si usa redondeo; la app no trae precios.
+- [ ] Decisión de producto: hoy staff no ve ni registra cobros de cancha (como cuotas). Si el mostrador debe cobrar canchas, habilitar `staff` en las RPC/RLS con otra migración.
+- [ ] Mejora futura: dividir una misma deuda entre varios jugadores (hoy un responsable por cargo).
+- [ ] Mejora futura: pago global que se reparta entre cuotas/cantina/canchas (hoy cada concepto se cobra en su módulo).
+- [ ] Mejora futura: reglas económicas de clases, bloqueos y torneos (hoy fuera del cobro); las inscripciones a torneos no figuran en la cuenta corriente.
+- [ ] Riesgo conocido: cancelar o mover una reserva que ya tiene cargo no toca el cargo (anularlo es una acción explícita).
+- [ ] Anular un cargo/pago no es idempotente ante reintentos (igual que las anulaciones existentes).
+- [ ] Verificación visual autenticada de las pantallas nuevas (360/390/768/1440 px): no realizada en este sprint.
+
 ## Diseño — próximos pasos
 - [ ] Confirmar con el club si `apps/web/public/branding/logoRafa.png` es el escudo definitivo y, si corresponde, aportar referencias visuales adicionales.
 - [x] Sprint 10C.2: rediseñar Cuotas, Jugadores, Escuela, Torneos, Cantina y configuraciones, sin alterar los flujos funcionales.

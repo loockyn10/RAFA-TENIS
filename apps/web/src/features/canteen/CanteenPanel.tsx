@@ -71,8 +71,8 @@ export function PersonCanteenAccount({ client, club, personId }: { client: Supab
   )
 }
 
-export function CanteenPanel({ client, club, canManageCatalog }: { client: SupabaseClient; club: Club; canManageCatalog: boolean }) {
-  const [view, setView] = useState<CanteenView>('sell')
+export function CanteenPanel({ client, club, canManageCatalog, initialPendingSearch }: { client: SupabaseClient; club: Club; canManageCatalog: boolean; initialPendingSearch?: string }) {
+  const [view, setView] = useState<CanteenView>(initialPendingSearch ? 'pending' : 'sell')
   const [categories, setCategories] = useState<CanteenCategory[]>([])
   const [products, setProducts] = useState<CanteenProduct[]>([])
   const [people, setPeople] = useState<ClubPerson[]>([])
@@ -98,7 +98,7 @@ export function CanteenPanel({ client, club, canManageCatalog }: { client: Supab
   const [paymentMethodLater, setPaymentMethodLater] = useState<PaymentMethod>('cash')
   const [voidSale, setVoidSale] = useState<CanteenSale | null>(null)
   const [voidReason, setVoidReason] = useState('')
-  const [pendingSearch, setPendingSearch] = useState('')
+  const [pendingSearch, setPendingSearch] = useState(initialPendingSearch ?? '')
   const [cartOpen, setCartOpen] = useState(false)
   const [editorError, setEditorError] = useState<string | null>(null)
   // Operaciones financieras: una sola en vuelo a la vez (el botón deshabilitado no alcanza ante un doble clic rápido).

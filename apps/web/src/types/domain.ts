@@ -249,3 +249,77 @@ export type TournamentMatch = {
   entry_one_id: string | null; entry_two_id: string | null; winner_entry_id: string | null; reservation_id: string | null
   status: 'pending' | 'scheduled' | 'completed' | 'cancelled'; score_text: string | null; is_walkover: boolean; finished_at: string | null
 }
+
+// ── Cobros de cancha e iluminación y cuenta corriente (Sprint 14) ──
+export type CourtBillingMode = 'exact' | 'rounded_up'
+export type CourtRateSettings = {
+  club_id: string
+  rental_hour_cents: number | null
+  lighting_hour_cents: number | null
+  rental_enabled: boolean
+  lighting_enabled: boolean
+  billing_mode: CourtBillingMode
+  billing_block_minutes: number | null
+  updated_at: string
+  updated_by: string
+}
+export type CourtRateHistoryEntry = Omit<CourtRateSettings, 'updated_at' | 'updated_by'> & { id: string; changed_at: string; changed_by: string }
+export type CourtCharge = {
+  id: string
+  club_id: string
+  reservation_id: string
+  responsible_person_id: string
+  responsible_name_snapshot: string
+  member_status: 'member' | 'non_member'
+  billable_minutes: number
+  rental_applied: boolean
+  lighting_applied: boolean
+  rental_hour_cents_snapshot: number | null
+  lighting_hour_cents_snapshot: number | null
+  billing_mode_snapshot: CourtBillingMode
+  billing_block_minutes_snapshot: number | null
+  calculated_rental_cents: number | null
+  calculated_lighting_cents: number | null
+  rental_cents: number
+  lighting_cents: number
+  total_cents: number
+  adjustment_reason: string | null
+  notes: string | null
+  status: 'confirmed' | 'voided'
+  client_request_id: string
+  created_at: string
+  created_by: string
+  voided_at: string | null
+  voided_by: string | null
+  void_reason: string | null
+}
+export type CourtChargePayment = {
+  id: string
+  club_id: string
+  charge_id: string
+  amount_cents: number
+  payment_date: string
+  payment_method: PaymentMethod
+  reference: string | null
+  notes: string | null
+  client_request_id: string
+  created_at: string
+  created_by: string
+  voided_at: string | null
+  voided_by: string | null
+  void_reason: string | null
+}
+export type AccountConcept = 'membership_due' | 'canteen' | 'court_rental' | 'court_lighting' | 'court_rental_lighting'
+export type AccountItemStatus = 'pending' | 'partial' | 'paid' | 'voided'
+export type AccountItem = {
+  concept: AccountConcept
+  source_id: string
+  occurred_on: string
+  due_date: string | null
+  description: string
+  original_cents: number
+  paid_cents: number
+  balance_cents: number
+  status: AccountItemStatus
+  reservation_id: string | null
+}

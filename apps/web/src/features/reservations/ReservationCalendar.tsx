@@ -5,13 +5,14 @@ import { Avatar, Badge, Button, Chip, CourtMark, ConfirmDialog, ErrorState, Fiel
 import { CourtPicker } from '../../design/domain'
 import { useIsMobile } from '../../design/media'
 import { plural } from '../../design/format'
+import { CourtChargeSection } from '../courtCharges/CourtChargeSection'
 import { KIND_LABEL, KIND_TONE, courtShort, occupationKind, occupationTitle } from './occupationView'
 import { CALENDAR_END_HOUR, CALENDAR_START_HOUR, OCCUPATION_FIELDS, SLOT_MINUTES, blockPayload, isOverlapError, isValidReservationInterval, isoToDateAndTime, occupationConflicts, reservationPayload, shiftCalendarDate, sortReservations, todayInTimezone, weeklyOccurrenceDates, zonedDateTimeToIso } from './reservationUtils'
 
 /** Pedido de apertura de un formulario desde otra sección (Inicio, botón central, barra superior). */
 export type CalendarFormRequest = { id: number; kind: 'reservation' | 'block'; courtId?: string; date?: string; startsAt?: string }
 
-type ReservationCalendarProps = { client: SupabaseClient; club: Club; courts: Court[]; formRequest?: CalendarFormRequest | null; onFormRequestHandled?: () => void; onOpenLesson?: (reservationId: string) => void; onOpenTournamentMatch?: (reservationId: string) => void; onCreateLesson?: (request: { courtId: string; date: string; startsAt: string }) => void }
+type ReservationCalendarProps = { client: SupabaseClient; club: Club; courts: Court[]; canManageFinances?: boolean; formRequest?: CalendarFormRequest | null; onFormRequestHandled?: () => void; onOpenLesson?: (reservationId: string) => void; onOpenTournamentMatch?: (reservationId: string) => void; onCreateLesson?: (request: { courtId: string; date: string; startsAt: string }) => void }
 type SwitchRequest = { courtId: string; date: string; startsAt: string; endsAt: string }
 type ReservationFormProps = { client: SupabaseClient; club: Club; courts: Court[]; initial: ReservationDraft; reservation?: Reservation; occupations?: Reservation[]; occupationsDate?: string; onClose: () => void; onSave: (draft: ReservationDraft, reservation?: Reservation) => Promise<string | null>; onCancel: (reservation: Reservation) => Promise<string | null>; onSwitchKind?: (request: SwitchRequest) => void }
 type BlockFormProps = { club: Club; courts: Court[]; initial: BlockDraft; block?: Reservation; occupations?: Reservation[]; occupationsDate?: string; onClose: () => void; onSave: (draft: BlockDraft, block?: Reservation) => Promise<string | null>; onCancel: (block: Reservation) => Promise<string | null>; onSwitchKind?: (request: SwitchRequest) => void }
@@ -263,7 +264,7 @@ function formatConflicts(conflicts: ReturnType<typeof occupationConflicts>, time
 
 type FormState = { kind: 'reservation'; draft: ReservationDraft; reservation?: Reservation } | { kind: 'block'; draft: BlockDraft; block?: Reservation }
 
-export function ReservationCalendar({ client, club, courts, formRequest, onFormRequestHandled, onOpenLesson, onOpenTournamentMatch, onCreateLesson }: ReservationCalendarProps) {
+export function ReservationCalendar({ client, club, courts, canManageFinances = false, formRequest, onFormRequestHandled, onOpenLesson, onOpenTournamentMatch, onCreateLesson }: ReservationCalendarProps) {
   const today = todayInTimezone(club.timezone)
   const [date, setDate] = useState(today)
   const [occupations, setOccupations] = useState<Reservation[]>([])
@@ -444,7 +445,7 @@ export function ReservationCalendar({ client, club, courts, formRequest, onFormR
           </>}
     </>}
 
-    <OccupationDetail club={club} courts={courts} occupation={detail} onClose={() => setDetail(null)} onEdit={(occupation) => { setDetail(null); openEdit(occupation) }} onCancel={(occupation) => { setCancelError(null); setCancelTarget(occupation) }} onOpenLesson={onOpenLesson} onOpenTournamentMatch={onOpenTournamentMatch} />
+    <OccupationDetail client={client} club={club} courts={courts} canManageFinances={canManageFinances} occupation={detail} onClose={() => setDetail(null)} onEdit={(occupation) => { setDetail(null); openEdit(occupation) }} onCancel={(occupation) => { setCancelError(null); setCancelTarget(occupation) }} onOpenLesson={onOpenLesson} onOpenTournamentMatch={onOpenTournamentMatch} />
     <ConfirmDialog open={cancelTarget !== null} onClose={() => { if (!cancelling) setCancelTarget(null) }} title={cancelTarget?.occupation_type === 'block' ? '¿Levantar el bloqueo?' : '¿Cancelar esta reserva?'} confirmLabel={cancelTarget?.occupation_type === 'block' ? 'Levantar bloqueo' : 'Sí, cancelar'} status={cancelling ? 'saving' : cancelError ? 'error' : 'idle'} errorTitle="No se pudo cancelar" errorBody={cancelError ?? undefined} onConfirm={() => { if (!cancelTarget) return; setCancelling(true); setCancelError(null); void cancel(cancelTarget).then((error) => { setCancelling(false); if (error) setCancelError(error); else { setCancelTarget(null); setDetail(null) } }) }}>
       {cancelTarget && <>
         <p><b>{occupationTitle(cancelTarget)}</b> · {courts.find((court) => court.id === cancelTarget.court_id)?.name} · <span className="num">{isoToDateAndTime(cancelTarget.starts_at, club.timezone).time}–{isoToDateAndTime(cancelTarget.ends_at, club.timezone).time}</span></p>
@@ -456,7 +457,7 @@ export function ReservationCalendar({ client, club, courts, formRequest, onFormR
   </section>
 }
 
-function OccupationDetail({ club, courts, occupation, onClose, onEdit, onCancel, onOpenLesson, onOpenTournamentMatch }: { club: Club; courts: Court[]; occupation: Reservation | null; onClose: () => void; onEdit: (occupation: Reservation) => void; onCancel: (occupation: Reservation) => void; onOpenLesson?: (id: string) => void; onOpenTournamentMatch?: (id: string) => void }) {
+function OccupationDetail({ client, club, courts, canManageFinances = false, occupation, onClose, onEdit, onCancel, onOpenLesson, onOpenTournamentMatch }: { client: SupabaseClient; club: Club; courts: Court[]; canManageFinances?: boolean; occupation: Reservation | null; onClose: () => void; onEdit: (occupation: Reservation) => void; onCancel: (occupation: Reservation) => void; onOpenLesson?: (id: string) => void; onOpenTournamentMatch?: (id: string) => void }) {
   const kind = occupation ? occupationKind(occupation.occupation_type) : null
   const court = occupation ? courts.find((item) => item.id === occupation.court_id) : undefined
   const start = occupation ? isoToDateAndTime(occupation.starts_at, club.timezone) : null
@@ -476,7 +477,9 @@ function OccupationDetail({ club, courts, occupation, onClose, onEdit, onCancel,
             {occupation.block_reason && <div><dt>Motivo</dt><dd>{occupation.block_reason}</dd></div>}
             {occupation.notes && <div><dt>Observación</dt><dd>{occupation.notes}</dd></div>}
           </dl>
-          {occupation.occupation_type === 'reservation' && <p className="detail-footnote"><Icon name="info" size={16} />Reservar no genera un cobro. El uso y el pago se registran aparte.</p>}
+          {occupation.occupation_type === 'reservation' && (canManageFinances
+            ? <CourtChargeSection client={client} club={club} reservation={occupation} courtName={court?.name} />
+            : <p className="detail-footnote"><Icon name="info" size={16} />Reservar no genera un cobro. El uso y el pago se registran aparte.</p>)}
           <div className="detail-actions">
             {generic ? (
               <>

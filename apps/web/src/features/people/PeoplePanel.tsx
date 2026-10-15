@@ -4,13 +4,14 @@ import type { Club, ClubMembershipRecord, ClubMembershipStatus, ClubPerson, Rese
 import { isoToDateAndTime } from '../reservations/reservationUtils'
 import { MemberAccount } from '../fees/FinancePanel'
 import { PersonCanteenAccount } from '../canteen/CanteenPanel'
+import { PersonAccount } from '../account/PersonAccount'
 import { Avatar, Badge, Button, ConfirmDialog, EmptyState, ErrorState, Field, Icon, Modal, PageHead, SegmentedTabs, SkeletonCards, StatStrip, TextArea, TextInput } from '../../design/ui'
 import { MemberBadge } from '../../design/domain'
 import { normalizeSearch, plural } from '../../design/format'
 import { useAsyncAction } from '../../design/useAsyncAction'
 import type { AdminSection } from '../shell/AdminShell'
 
-type PeoplePanelProps = { client: SupabaseClient; club: Club; canManageMemberships: boolean; createRequest?: number; onCreateRequestHandled?: () => void; onNavigate?: (section: AdminSection) => void }
+type PeoplePanelProps = { client: SupabaseClient; club: Club; canManageMemberships: boolean; createRequest?: number; onCreateRequestHandled?: () => void; onNavigate?: (section: AdminSection) => void; onOpenCanteenPending?: (personName: string) => void }
 type Filter = 'all' | 'members' | 'guests' | 'coaches' | 'inactive'
 type MembershipChoice = 'none' | ClubMembershipStatus
 export type PersonForm = { fullName: string; phone: string; email: string; notes: string; active: boolean; membership: MembershipChoice; memberSince: string }
@@ -132,7 +133,7 @@ function PersonRow({ person, membership, isCoach, onOpen }: { person: ClubPerson
   )
 }
 
-export function PeoplePanel({ client, club, canManageMemberships, createRequest = 0, onCreateRequestHandled, onNavigate }: PeoplePanelProps) {
+export function PeoplePanel({ client, club, canManageMemberships, createRequest = 0, onCreateRequestHandled, onNavigate, onOpenCanteenPending }: PeoplePanelProps) {
   const [people, setPeople] = useState<ClubPerson[]>([])
   const [memberships, setMemberships] = useState<ClubMembershipRecord[]>([])
   const [coachIds, setCoachIds] = useState<Set<string>>(new Set())
@@ -357,7 +358,7 @@ export function PeoplePanel({ client, club, canManageMemberships, createRequest 
           reservations={reservations} participations={participations} loadingReservations={loadingReservations} canManageMemberships={canManageMemberships}
           onClose={() => setDetailId(null)} onEdit={() => { setDetailId(null); setEditor(detail) }}
           onMembershipChange={(nextStatus) => void changeMembership(detail, membershipByPerson.get(detail.id), nextStatus)}
-          onToggleActive={() => toggleActive(detail)} onNavigate={onNavigate}
+          onToggleActive={() => toggleActive(detail)} onNavigate={onNavigate} onOpenCanteenPending={onOpenCanteenPending}
         />
       )}
       {editor && <PersonEditor person={editing} membership={editing ? membershipByPerson.get(editing.id) : undefined} today={today} canManageMemberships={canManageMemberships} people={people} onClose={() => setEditor(null)} onSave={savePerson} />}
@@ -387,10 +388,10 @@ function ReservationList({ title, items, timezone }: { title: string; items: Res
   )
 }
 
-function PersonDetail({ client, club, person, membership, isCoach, reservations, participations, loadingReservations, canManageMemberships, onClose, onEdit, onMembershipChange, onToggleActive, onNavigate }: {
+function PersonDetail({ client, club, person, membership, isCoach, reservations, participations, loadingReservations, canManageMemberships, onClose, onEdit, onMembershipChange, onToggleActive, onNavigate, onOpenCanteenPending }: {
   client: SupabaseClient; club: Club; person: ClubPerson; membership?: ClubMembershipRecord; isCoach: boolean; reservations: Reservation[]; participations: TournamentParticipation[]
   loadingReservations: boolean; canManageMemberships: boolean; onClose: () => void; onEdit: () => void; onMembershipChange: (status: ClubMembershipStatus) => void
-  onToggleActive: () => Promise<string | null>; onNavigate?: (section: AdminSection) => void
+  onToggleActive: () => Promise<string | null>; onNavigate?: (section: AdminSection) => void; onOpenCanteenPending?: (personName: string) => void
 }) {
   const [confirm, setConfirm] = useState(false)
   const action = useAsyncAction()
@@ -436,6 +437,7 @@ function PersonDetail({ client, club, person, membership, isCoach, reservations,
             </section>
           )}
 
+          {canManageMemberships && <PersonAccount client={client} club={club} personId={person.id} onClose={onClose} onOpenCanteen={() => onOpenCanteenPending?.(person.full_name)} />}
           <MemberAccount client={client} club={club} membership={membership} canManage={canManageMemberships} />
           <PersonCanteenAccount client={client} club={club} personId={person.id} />
 

@@ -39,6 +39,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   const [requestedTournamentReservationId, setRequestedTournamentReservationId] = useState<string | null>(null)
   const [formRequest, setFormRequest] = useState<CalendarFormRequest | null>(null)
   const [personRequest, setPersonRequest] = useState(0)
+  const [canteenPendingSearch, setCanteenPendingSearch] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     let cancelled = false
@@ -134,6 +135,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   const effectiveSection: AdminSection = !canManage && (section === 'fees' || section === 'playerAccess' || section === 'settings') ? 'home' : section
 
   const changeSection = (nextSection: AdminSection) => {
+    if (nextSection !== 'canteen') setCanteenPendingSearch(undefined)
     setSection(nextSection)
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' })
   }
@@ -175,11 +177,11 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
       {error && <p className="inline-alert inline-alert-danger" role="alert">{error}</p>}
       <Suspense fallback={<div className="rt" role="status" aria-label="Cargando sección"><SkeletonCards count={3} height={96} /></div>}>
       {effectiveSection === 'home' && <div className="rt"><AdminHome client={client} club={selectedClub} courts={courts} canManage={canManage} onNavigate={changeSection} onNewReservation={(request) => requestForm('reservation', request)} onNewBlock={(request) => requestForm('block', request)} /></div>}
-      {effectiveSection === 'reservations' && <div className="rt"><ReservationCalendar client={client} club={selectedClub} courts={courts} formRequest={formRequest} onFormRequestHandled={() => setFormRequest(null)} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); changeSection('school') }} onOpenTournamentMatch={(reservationId) => { setRequestedTournamentReservationId(reservationId); changeSection('tournaments') }} onCreateLesson={(request) => { setLessonCreation(request); changeSection('school') }} /></div>}
-      {effectiveSection === 'canteen' && <div className="rt"><CanteenPanel client={client} club={selectedClub} canManageCatalog={canManage} /></div>}
+      {effectiveSection === 'reservations' && <div className="rt"><ReservationCalendar client={client} club={selectedClub} courts={courts} canManageFinances={canManage} formRequest={formRequest} onFormRequestHandled={() => setFormRequest(null)} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); changeSection('school') }} onOpenTournamentMatch={(reservationId) => { setRequestedTournamentReservationId(reservationId); changeSection('tournaments') }} onCreateLesson={(request) => { setLessonCreation(request); changeSection('school') }} /></div>}
+      {effectiveSection === 'canteen' && <div className="rt"><CanteenPanel client={client} club={selectedClub} canManageCatalog={canManage} initialPendingSearch={canteenPendingSearch} /></div>}
       {effectiveSection === 'school' && <div className="rt"><SchoolPanel client={client} club={selectedClub} courts={courts} canManageCoaches={canManage} requestedLessonId={requestedLessonId} onRequestedLessonHandled={() => setRequestedLessonId(null)} requestedCreation={lessonCreation} onRequestedCreationHandled={() => setLessonCreation(null)} /></div>}
       {effectiveSection === 'tournaments' && <div className="rt"><TournamentPanel client={client} club={selectedClub} courts={courts} canManage={canManage} requestedReservationId={requestedTournamentReservationId} onRequestedReservationHandled={() => setRequestedTournamentReservationId(null)} /></div>}
-      {effectiveSection === 'people' && <div className="rt"><PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} createRequest={personRequest} onCreateRequestHandled={() => setPersonRequest(0)} onNavigate={changeSection} /></div>}
+      {effectiveSection === 'people' && <div className="rt"><PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} createRequest={personRequest} onCreateRequestHandled={() => setPersonRequest(0)} onNavigate={changeSection} onOpenCanteenPending={(name) => { setCanteenPendingSearch(name); setSection('canteen'); if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' }) }} /></div>}
       {effectiveSection === 'fees' && canManage && <div className="rt"><FinancePanel client={client} club={selectedClub} canManage={canManage} /></div>}
       {effectiveSection === 'settings' && canManage && <div className="rt"><SettingsPanel client={client} club={selectedClub} courts={courts} onNavigate={changeSection} /></div>}
       {effectiveSection === 'playerAccess' && canManage && <div className="rt"><PlayerAccessPanel client={client} club={selectedClub} onOpenSettings={() => changeSection('settings')} /></div>}

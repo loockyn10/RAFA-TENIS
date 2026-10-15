@@ -8,6 +8,7 @@ import { durationLabel, fromMinutes, toMinutes } from '../../design/dates'
 import { plural } from '../../design/format'
 import { useAsyncAction } from '../../design/useAsyncAction'
 import type { AdminSection } from '../shell/AdminShell'
+import { CourtRatesCard } from '../courtCharges/CourtRatesCard'
 
 const defaults: OnlineBookingSettings = { enabled: false, opens_at: '07:00', closes_at: '23:00', max_advance_days: 7, allowed_durations_minutes: [60, 90], max_active_reservations: 2, cancellation_lead_minutes: 120, configured: false }
 const BASE_DURATIONS = [30, 60, 90, 120]
@@ -105,6 +106,8 @@ export function SettingsPanel({ client, club, courts, onNavigate }: { client: Su
                   <SettingsLink icon="calendar" title="Grilla de la agenda" value="07:00 a 23:00 · cada 30 min" />
                 </ul>
               </section>
+
+              <CourtRatesCard client={client} club={club} />
 
               <section className="settings-card settings-card-wide" aria-labelledby="st-rules">
                 <header className="settings-card-head">
