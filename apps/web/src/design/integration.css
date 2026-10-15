@@ -1,0 +1,38 @@
+/*
+ * Integración 01: estilos de estados reales que el prototipo (datos ficticios) no necesitaba.
+ * Mantener acá solo lo que falta; los componentes y pantallas viven en components/screens/modules-common.
+ */
+
+/* Cantina: productos sin categoría reconocida, filas con acciones, catálogo y diálogos. */
+.tone-general .product-icon { background: var(--chalk-100); color: var(--green-800); }
+.product-tile .product-name { padding-right: 36px; }
+
+.pos-sale-row.has-actions { grid-template-columns: 54px minmax(0, 1fr) auto; align-items: start; padding: var(--s-3) var(--s-4); }
+.pos-sale-row.has-actions .sale-time { display: grid; gap: 2px; }
+.pos-sale-row.has-actions .sale-time small { color: var(--text-subtle); font-size: 0.75rem; font-weight: 600; }
+.pos-sale-row .sale-main small, .pos-sale-row .sale-side small { color: var(--text-muted); font-size: 0.75rem; }
+.pos-sale-row .sale-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s-2); }
+.pos-sale-row .sale-actions:empty { display: none; }
+.pos-sale-list.account-list .pos-sale-row { padding-inline: var(--s-4); }
+
+.catalog-grid { display: grid; gap: var(--s-5); align-items: start; }
+@media (min-width: 1024px) { .catalog-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); } }
+.catalog-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-3); }
+.catalog-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: var(--s-3); padding: var(--s-3) 0; }
+.catalog-row .sale-main span { color: var(--text-muted); font-size: var(--fs-sm); }
+@media (max-width: 599px) { .catalog-row { grid-template-columns: minmax(0, 1fr) auto; } .catalog-row > .btn { justify-self: end; } }
+
+.checkout { display: grid; gap: var(--s-4); }
+.picker .picker-list { display: grid; gap: 2px; }
+
+/* Agenda: celdas de canchas inactivas. */
+.agenda-cell:disabled { cursor: not-allowed; background: repeating-linear-gradient(135deg, transparent 0 8px, rgb(0 0 0 / 0.02) 8px 16px); }
+.agenda-cell:disabled:hover { background: transparent; }
+
+/* Controles segmentados con más pestañas que el prototipo (p. ej. Cantina): desplazables y sin íconos en celulares angostos. */
+.segmented { overflow-x: auto; scrollbar-width: none; }
+.segmented::-webkit-scrollbar { display: none; }
+@media (max-width: 520px) {
+  .canteen-top .segmented button { gap: 4px; padding: 0 8px; font-size: var(--fs-sm); }
+  .canteen-top .segmented button > .icon { display: none; }
+}

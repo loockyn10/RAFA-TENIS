@@ -1,0 +1,238 @@
+/* ══════════════════════════════════════════════════════════════════
+   Shells: administración (sidebar / rail / barra inferior) y portal
+   Breakpoints: <768 celular · 768–1023 tablet (rail) · ≥1024 escritorio · ≥1440 amplio
+   ══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) { .hide-mobile { display: none !important; } }
+@media (min-width: 768px) { .show-mobile { display: none !important; } }
+
+.skip-link { position: absolute; left: -9999px; top: 8px; z-index: 100; padding: 10px 16px; border-radius: var(--r-sm); background: var(--ball-500); color: var(--green-950); font-weight: 700; }
+.skip-link:focus { left: 8px; }
+
+/* ── Layout administración ─────────────────────────────────────── */
+.admin-shell { min-height: 100dvh; }
+.admin-main { min-width: 0; }
+.shell-content {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--s-5) var(--gutter) var(--s-12);
+}
+.shell-content:focus { outline: none; }
+
+@media (min-width: 768px) {
+  .admin-shell { display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr); }
+}
+@media (min-width: 1024px) {
+  .admin-shell { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────── */
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: none;
+  flex-direction: column;
+  gap: var(--s-4);
+  height: 100dvh;
+  padding: var(--s-5) var(--s-3) var(--s-4);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 400' fill='none' stroke='white' stroke-opacity='0.06' stroke-width='2'%3E%3Crect x='20' y='20' width='200' height='360'/%3E%3Cpath d='M45 20v360M195 20v360M45 110h150M45 290h150M120 110v180M12 200h216'/%3E%3C/svg%3E") no-repeat center bottom -140px / 100% auto,
+    var(--bg-chrome);
+  color: var(--text-on-dark);
+}
+@media (min-width: 768px) { .sidebar { display: flex; } }
+.sidebar :focus-visible { box-shadow: var(--ring-dark); }
+.sidebar-brand { display: flex; align-items: center; gap: var(--s-3); padding: 0 var(--s-2); }
+.sidebar-brand-text { display: grid; line-height: 1.15; }
+.sidebar-brand-text strong { font-size: 1.5rem; }
+.sidebar-brand-text span { color: var(--text-on-dark-muted); font-size: 0.8125rem; }
+.sidebar-nav { flex: 1; overflow-y: auto; scrollbar-width: thin; }
+.sidebar-group + .sidebar-group { margin-top: var(--s-4); }
+.sidebar-group-label { margin: 0 0 6px; padding: 0 var(--s-3); color: var(--green-300); font-family: var(--font-display); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 46px;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-on-dark-muted);
+  font-weight: 600;
+  font-size: 0.96875rem;
+  text-align: left;
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+}
+.sidebar-link:hover { background: rgb(255 255 255 / 0.06); color: #fff; }
+.sidebar-link.is-active { background: rgb(255 255 255 / 0.1); color: #fff; box-shadow: inset 3px 0 0 var(--ball-500); }
+.sidebar-link.is-active .icon { color: var(--ball-500); }
+.sidebar-link-short { display: none; }
+.sidebar-account { position: relative; }
+.sidebar-account-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--r-md);
+  background: rgb(255 255 255 / 0.05);
+  color: var(--text-on-dark);
+  text-align: left;
+}
+.sidebar-account-btn:hover { background: rgb(255 255 255 / 0.1); }
+.sidebar-account-text { flex: 1; display: grid; line-height: 1.2; }
+.sidebar-account-text span { color: var(--text-on-dark-muted); font-size: 0.8125rem; }
+.sidebar .popover { width: 280px; right: auto; }
+
+/* Rail en tablet */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar { align-items: center; padding-inline: var(--s-2); }
+  .sidebar-brand { padding: 0; }
+  .sidebar-brand-text, .sidebar-group-label, .sidebar-link-label, .sidebar-account-text, .sidebar-account-btn > .icon { display: none; }
+  .sidebar-nav { width: 100%; }
+  .sidebar-group + .sidebar-group { margin-top: var(--s-2); padding-top: var(--s-2); border-top: 1px solid rgb(255 255 255 / 0.08); }
+  .sidebar-link { flex-direction: column; justify-content: center; gap: 4px; min-height: 62px; padding: 6px 2px; font-size: 0.75rem; text-align: center; }
+  .sidebar-link-short { display: block; line-height: 1.1; }
+  .sidebar-link.is-active { box-shadow: inset 0 -3px 0 var(--ball-500); }
+  .sidebar-account-btn { justify-content: center; padding: 8px; }
+}
+
+/* ── Barra superior ────────────────────────────────────────────
+   Sin títulos de sección: el lugar lo marcan la navegación y el encabezado de cada pantalla.
+   Escritorio/tablet: fecha y hora del club + acciones (el escudo vive en la barra lateral).
+   Celular: escudo centrado que sobresale del borde inferior sobre un zócalo verde; al desplazarse
+   se condensa dentro de la barra para no tapar contenido. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-height: 72px;
+  padding: var(--s-3) var(--gutter);
+  border-bottom: 1px solid var(--border);
+  background: rgb(244 241 231 / 0.88);
+  backdrop-filter: saturate(1.4) blur(10px);
+}
+.topbar-clock { flex: 1; display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+.topbar-clock-day { overflow: hidden; font-family: var(--font-display); font-size: 1.375rem; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+.topbar-clock-time { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--border); border-radius: var(--r-pill); background: var(--surface); color: var(--ink-700); font-size: var(--fs-sm); font-weight: 700; }
+.topbar-clock-time i { width: 7px; height: 7px; border-radius: 50%; background: var(--green-500); }
+.topbar-crest { display: none; }
+.topbar-actions { display: flex; align-items: center; gap: var(--s-2); }
+.topbar-avatar { padding: 2px; border: 2px solid rgb(255 255 255 / 0.3); border-radius: 50%; background: none; }
+
+/* Zócalo verde que recibe el escudo (celular y portal en escritorio). */
+.topbar-crest-plinth {
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 84px;
+  height: 42px;
+  translate: -50% 0;
+  border-radius: 0 0 44px 44px;
+  background: var(--bg-chrome);
+  box-shadow: 0 10px 16px -10px rgb(4 25 15 / 0.6);
+  transition: opacity var(--dur-med) var(--ease-out);
+}
+
+@media (max-width: 767px) {
+  .topbar {
+    gap: var(--s-2);
+    min-height: 0;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) var(--gutter) 0;
+    border-bottom: 0;
+    background: var(--bg-chrome);
+    color: var(--text-on-dark);
+    backdrop-filter: none;
+  }
+  .topbar :focus-visible { box-shadow: var(--ring-dark); }
+  .topbar-clock { flex: 1 1 0; display: grid; gap: 1px; line-height: 1.1; }
+  .topbar-clock-day { color: var(--text-on-dark-muted); font-family: var(--font-body); font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
+  .topbar-clock-time { padding: 0; border: 0; background: none; color: #fff; font-family: var(--font-display); font-size: 1.25rem; }
+  .topbar-clock-time i { background: var(--ball-500); }
+  .topbar-actions { flex: 1 1 0; justify-content: flex-end; gap: 2px; margin-left: auto; }
+  /* Cada lado deja libre la franja central del escudo. */
+  .topbar-clock, .topbar-actions { max-width: calc(50% - 50px); }
+  .topbar-actions .icon-btn.is-current { background: rgb(255 255 255 / 0.12); color: var(--ball-400); }
+  .topbar-crest {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: calc(env(safe-area-inset-top) + 4px);
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-md);
+    background: none;
+    translate: -50% 0;
+    transform-origin: 50% 0;
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+  .topbar-crest .crest { position: relative; width: 60px; filter: drop-shadow(0 6px 10px rgb(4 25 15 / 0.45)); }
+  .topbar.is-condensed .topbar-crest { transform: translateY(2px) scale(0.68); }
+  .topbar.is-condensed .topbar-crest-plinth { opacity: 0; }
+  /* Espacio reservado para el saliente del escudo (16 px) y su zócalo (20 px). */
+  .shell-content { padding-top: calc(var(--s-5) + 20px); padding-bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + var(--s-8)); }
+}
+@media (max-width: 359px) {
+  .topbar-crest .crest { width: 54px; }
+  .topbar-crest-plinth { width: 76px; height: 38px; }
+}
+
+/* ── Barra inferior (celular) ──────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  z-index: var(--z-nav);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: end;
+  height: calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
+  padding: 0 4px env(safe-area-inset-bottom);
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  background: var(--bg-chrome);
+  box-shadow: 0 -8px 24px -12px rgb(4 25 15 / 0.5);
+}
+@media (min-width: 768px) { .bottom-nav { display: none; } }
+.bottom-nav :focus-visible { box-shadow: var(--ring-dark); }
+.bottom-link {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  height: var(--bottomnav-h);
+  padding: 8px 0 10px;
+  border: 0;
+  background: none;
+  color: var(--text-on-dark-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  align-content: center;
+}
+.bottom-link .icon { width: 52px; height: 30px; padding: 4px 15px; border-radius: var(--r-pill); transition: background-color var(--dur-fast); }
+.bottom-link.is-active { color: #fff; }
+.bottom-link.is-active .icon { background: var(--ball-500); color: var(--green-950); }
+.bottom-fab { display: grid; place-items: center; height: var(--bottomnav-h); padding: 0; border: 0; background: none; }
+.bottom-fab > span {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin-top: -26px;
+  border: 4px solid var(--bg-chrome);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--ball-300), var(--ball-500) 60%);
+  color: var(--green-950);
+  box-shadow: 0 8px 18px -4px rgb(0 0 0 / 0.45);
+  transition: transform var(--dur-fast);
+}
+.bottom-fab:active > span { transform: scale(0.94); }
+.bottom-fab[aria-current='page'] > span { box-shadow: 0 0 0 3px var(--ball-500), 0 8px 18px -4px rgb(0 0 0 / 0.45); }

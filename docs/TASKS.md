@@ -58,6 +58,11 @@ Auditoría sin correcciones: 0 críticos, 1 alto, 4 medios, 8 bajos. **Sprint 10
 - [ ] DESIGN-02 (pendiente de decisión): catálogo y anulación de ventas de cantina, modo oscuro y PWA del prototipo siguen sin diseñar.
 - [ ] DESIGN-02 (decisión de producto): «Configuración del club» del prototipo propone datos que hoy no existen en producción (localidad, teléfono de contacto, edición del nombre). Confirmar antes de integrarlos; producción solo tiene reglas online, cuota mensual y canchas.
 - [ ] DESIGN-02 (decisión de producto): el prototipo impide programar clases y partidos en horarios ya pasados y avisa de solapes de profesor; validar con Rafa si coincide con la operación real.
+- [x] Integración UI 01 (rama `feat/rafa-ui-integration`, local sin commit): design system, shell, navegación real, Inicio, Reservas y Cantina integrados en `apps/web` sobre la lógica existente. Ver `docs/UI_INTEGRATION_MAP.md`.
+- [ ] Integración UI 01: recorrido autenticado **contra Supabase real** (owner/admin y staff) a 360/390/430/768/1024/1440 px: Inicio, agenda (alta, edición, bloqueo, serie semanal, cancelación, clase/partido desde la agenda), Cantina (cobro, pendiente, pago parcial, anulación, catálogo, reintento tras corte de red), menú «+»/Más/Cuenta, teclado y foco. Hoy solo se verificó con un Supabase falso local y mocks.
+- [ ] Integración UI 01 (decisión): «Configuración del club» no tiene pantalla en producción; el prototipo la sugiere. Resolver en Integración 02/03 (ver DESIGN-02).
+- [ ] Integración UI 02: reemplazar el lienzo transitorio `<Legacy>` en Jugadores, Cuotas, Escuela, Torneos, Canchas y Portal/Invitaciones; luego Login, Canje y Portal del jugador; retirar `legacy-bridge.css` y el CSS previo.
+- [ ] Integración UI 01 (menor): Inicio no muestra saldo «a cuenta» ni cuotas del mes (no hay lectura proporcionada); evaluar un RPC/consulta liviana si el club lo pide. El avatar usa iniciales del correo.
 - [ ] Decidir si se adopta Barlow/Barlow Condensed (Google Fonts) o se autoalojan las fuentes en la PWA real (offline y privacidad).
 
 ## P1/P2 (no tomar ahora)

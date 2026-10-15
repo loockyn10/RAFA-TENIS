@@ -5,7 +5,7 @@ import { isoToDateAndTime } from '../reservations/reservationUtils'
 import { MemberAccount } from '../fees/FinancePanel'
 import { PersonCanteenAccount } from '../canteen/CanteenPanel'
 
-type PeoplePanelProps = { client: SupabaseClient; club: Club; canManageMemberships: boolean }
+type PeoplePanelProps = { client: SupabaseClient; club: Club; canManageMemberships: boolean; createRequest?: number; onCreateRequestHandled?: () => void }
 type Filter = 'all' | 'active-members' | 'non-members' | 'inactive'
 type PersonForm = { fullName: string; phone: string; email: string; notes: string; active: boolean }
 type TournamentParticipation = { id: string; tournamentName: string; categoryName: string; modality: string; partnerName: string | null; status: string }
@@ -62,7 +62,7 @@ function PersonDetail({ client, club, person, membership, reservations, particip
   </section></div>
 }
 
-export function PeoplePanel({ client, club, canManageMemberships }: PeoplePanelProps) {
+export function PeoplePanel({ client, club, canManageMemberships, createRequest = 0, onCreateRequestHandled }: PeoplePanelProps) {
   const [people, setPeople] = useState<ClubPerson[]>([])
   const [memberships, setMemberships] = useState<ClubMembershipRecord[]>([])
   const [filter, setFilter] = useState<Filter>('all')
@@ -74,6 +74,9 @@ export function PeoplePanel({ client, club, canManageMemberships }: PeoplePanelP
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loadingReservations, setLoadingReservations] = useState(false)
   const [participations, setParticipations] = useState<TournamentParticipation[]>([])
+
+  useEffect(() => { if (createRequest) { setEditor('new'); onCreateRequestHandled?.() } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createRequest])
 
   const load = async (searchTerm = search) => {
     setStatus('loading')

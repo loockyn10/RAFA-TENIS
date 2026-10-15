@@ -1,4 +1,4 @@
-# CURRENT_STATE.md — 2026-10-14 (Sprint 11A identidad visual; sobre 10B.2/10C.2/10B.1/10A/09)
+# CURRENT_STATE.md — 2026-10-14 (Integración UI 01 en rama `feat/rafa-ui-integration`; sobre 11B/11A/10B.2/10C.2/10B.1/10A/09)
 
 ## Implementado en el repositorio
 - Workspace pnpm con React, Vite, TypeScript estricto y PWA responsive en `apps/web`.
@@ -115,6 +115,17 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 - No se modificaron tablas, migraciones, consultas, RPC, RLS, Auth, cálculos financieros, reglas de reservas ni algoritmos de torneo. No hubo despliegue ni cambios remotos.
 - Validación local realizada: `pnpm --filter @rafa-tenis/web exec tsc -p tsconfig.app.json --noEmit`, `pnpm lint`, `pnpm test` (111 pruebas en 16 archivos) y `pnpm build` pasaron. El build mantiene la advertencia de bundle JavaScript principal mayor a 500 kB. No se realizó una prueba visual autenticada: el navegador aislado no pudo acceder al servidor Vite local (`ERR_CONNECTION_TIMED_OUT` en 5173 y 5175), por lo que todavía no se puede afirmar la revisión manual de 360/390/430/768/1024/1440 px.
 
+## Integración UI 01 — Design System + shell + Inicio + Reservas + Cantina (local, sin commit; detalle en `docs/UI_INTEGRATION_MAP.md`)
+- Rama `feat/rafa-ui-integration`. `apps/design-preview` **no se modificó**. Sin cambios en Supabase, migraciones, RLS, RPC, cálculos ni Vercel.
+- `apps/web/src/design/`: copia del design system aprobado (tokens, tipografía Barlow, componentes, shell, pantallas) + `integration.css` y `legacy-bridge.css`. El CSS previo (`styles.css`) quedó acotado a `.legacy-scope` (selectores de elemento a especificidad 0) para convivir sin conflictos.
+- Shell responsive real (`features/shell/AdminShell.tsx`): sidebar ≥1024 px, rail 768–1023 px, header móvil con escudo centrado/condensado, barra inferior con «+», Más y Cuenta. Navegación a las 9 secciones reales con permisos (Cuotas y Portal de jugadores solo owner/admin), selector de club, «Mi portal» y cierre de sesión reales.
+- Inicio (`features/home`): canchas ahora, próximos turnos, cantina de hoy y accesos, con lecturas reales y acotadas; indicadores sin consulta disponible se omiten o se declaran «no disponible».
+- Reservas: agenda multicancha, tira de días, vista por cancha/panorama móvil, detalle de ocupación y formularios nuevos sobre **la misma lógica** (series, bloqueos, clases/torneos, error 23P01); el prechequeo de solapes es solo informativo.
+- Cantina: POS con catálogo, ticket lateral/hoja móvil, cobro inmediato/pendiente, pagos parciales, historial, anulación y catálogo; **lógica e idempotencia 10B.2 sin cambios** (15 pruebas existentes de idempotencia pasan).
+- Jugadores, Cuotas, Escuela, Torneos, Canchas, Portal de jugadores, Login, Canje y Portal del jugador siguen con su interfaz anterior (los cinco primeros dentro del shell nuevo, sobre un lienzo verde transitorio).
+- Validación local: `tsc -p tsconfig.app.json --noEmit`, `pnpm lint` (0 avisos), `pnpm test` (129 pruebas, 19 archivos; 18 nuevas) y `pnpm build` pasaron (advertencia de bundle >500 kB: 659 kB, sin cambio de alcance).
+- Verificación visual en el navegador integrado contra un **Supabase falso local** (servidor descartable fuera del repo; no es Supabase real): sin overflow horizontal en 9 secciones a 360/390/430/768/1024/1440 px (medido por script), sin errores de consola, inicio de sesión/cierre, navegación, Inicio, agenda, alta con conflicto y alta correcta de reserva, detalle, panorama móvil, menú «+», Venta (cobro con transferencia), pago parcial de consumo, permisos de rol staff (oculta Cuotas, Portal, Productos y resumen). **No verificado:** Supabase real/RLS, series semanales y cancelación en navegador (cubiertas solo por pruebas unitarias), anulación de venta y catálogo en navegador, dispositivos físicos, Safari/iOS, lector de pantalla, teclado exhaustivo.
+
 ## DESIGN-01 — prototipo visual independiente (local, sin integrar)
 - Nueva app `apps/design-preview` (paquete `@rafa-tenis/design-preview`): React + Vite + TypeScript, **solo datos ficticios**, sin Supabase, variables de entorno ni backend. Reutiliza el escudo de `apps/web/public/branding/logoRafa.png` por alias de Vite, sin copiarlo.
 - Contiene design system (tokens, tipografía Barlow/Barlow Condensed, componentes, íconos propios), shell administrativo responsive (sidebar / rail / barra inferior), Inicio, Reservas, Cantina y portal de jugadores navegables, con estados de carga/vacío/error/confirmación simulables. Documentación en `apps/design-preview/README.md`.
@@ -131,5 +142,7 @@ Sin críticos; 1 alto, 4 medios, 8 bajos. Contradicciones con lo documentado má
 No hay edición masiva de series, recurrencias infinitas, pagos/liquidaciones/comisiones de profesores, mensualidades de alumnos, cobros automáticos/anticipados, Mercado Pago API, facturación fiscal, stock, caja formal, torneos por zonas/doble eliminación/ranking/siembra/inscripción pública, recuperación de cuentas, despliegue, pruebas RLS remotas ni funcionalidad offline transaccional.
 
 ## Próximo trabajo
+Integración UI 02: ver `docs/UI_INTEGRATION_MAP.md` §8 (Jugadores, Cuotas, Escuela, Torneos, Canchas). Antes de desplegar esta rama hay que recorrerla autenticada contra Supabase real con las migraciones de 10B.2 aplicadas.
+
 Aplicar en Supabase (orden: frontend → migraciones 20261014020000…050000; después `20261014060000` **junto con** el frontend de 10B.2, ver `SECURITY_AUDIT.md` §10.7) y correr `supabase/verification/sprint-10b1-remote-readonly-checks.sql` y las pruebas manuales de su pie, en un proyecto descartable si es posible. Antes, identificar con `sec-02-anon-rpc-diagnostic.sql` la función SECURITY DEFINER que `anon` ejecuta hoy en remoto. Luego, lo siguiente de esta sección:
 Confirmar en Supabase el historial de Sprint 2–8, aplicar `20261014010000_fix_tournament_fixture.sql` y recorrer un torneo completo (torneo, inscripciones abiertas, una categoría de 2 inscripciones y otra de 6, fixture, programación, W.O., resultados hasta campeón; repetir en dobles). Aplicar Sprint 09 solo después de comprobar el historial y ejecutar el guion nuevo con usuarios de dos clubes. Luego validar portal, agenda administrativa y reservas desde PC y celular.

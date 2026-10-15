@@ -102,7 +102,7 @@ describe('CanteenPanel · venta idempotente (SEC-05)', () => {
     await addAgua(); openCheckout(); fireEvent.click(confirmButton())
     await screen.findByRole('alert')
     fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Agregar una unidad de Agua' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sumar uno de Agua' }))
     openCheckout(); fireEvent.click(confirmButton())
     await waitFor(() => expect(saleCalls(rpc)).toHaveLength(2))
     expect(saleCalls(rpc)[1][1].p_client_request_id).not.toBe(saleCalls(rpc)[0][1].p_client_request_id)
@@ -145,7 +145,7 @@ describe('CanteenPanel · venta idempotente (SEC-05)', () => {
 
 describe('CanteenPanel · pago de consumo pendiente idempotente (SEC-05)', () => {
   const openPaymentDialog = async () => {
-    fireEvent.click(await screen.findByRole('button', { name: 'Consumos pendientes' }))
+    fireEvent.click(await screen.findByRole('tab', { name: /Consumos pendientes/ }))
     fireEvent.click(await screen.findByRole('button', { name: 'Registrar pago' }))
     return screen.getByRole('dialog', { name: 'Registrar pago de consumo' })
   }

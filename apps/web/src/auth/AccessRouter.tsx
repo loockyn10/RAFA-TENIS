@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useAuth } from './AuthProvider'
+import { AppFrame } from './AppFrame'
 import { AdminPanel } from '../features/admin/AdminPanel'
 import { PlayerPortal } from '../features/player/PlayerPortal'
 import { RedeemInvitationScreen } from '../features/player/RedeemInvitationScreen'
@@ -36,10 +37,10 @@ export function AccessRouter({ user }: { user: User }) {
 
   useEffect(() => { void refreshAccess() }, [refreshAccess])
 
-  if (staffCount === null) return <p className="screen-message" role="status">Verificando los accesos de tu cuenta…</p>
-  if (error) return <p className="screen-message error-message" role="alert">{error}</p>
-  if (staffCount === 0 && playerAccess.length === 0) return <RedeemInvitationScreen onRedeemed={() => void refreshAccess()} />
-  if (experience === 'player' && playerAccess.length > 0) return <PlayerPortal access={playerAccess} onOpenAdmin={staffCount > 0 ? () => setExperience('admin') : undefined} />
+  if (staffCount === null) return <AppFrame><p className="screen-message" role="status">Verificando los accesos de tu cuenta…</p></AppFrame>
+  if (error) return <AppFrame><p className="screen-message error-message" role="alert">{error}</p></AppFrame>
+  if (staffCount === 0 && playerAccess.length === 0) return <AppFrame><RedeemInvitationScreen onRedeemed={() => void refreshAccess()} /></AppFrame>
+  if (experience === 'player' && playerAccess.length > 0) return <AppFrame><PlayerPortal access={playerAccess} onOpenAdmin={staffCount > 0 ? () => setExperience('admin') : undefined} /></AppFrame>
   if (staffCount > 0) return <AdminPanel user={user} onOpenPlayerPortal={playerAccess.length > 0 ? () => setExperience('player') : undefined} />
-  return <PlayerPortal access={playerAccess} />
+  return <AppFrame><PlayerPortal access={playerAccess} /></AppFrame>
 }

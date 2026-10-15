@@ -1,0 +1,30 @@
+/* Base del design system, acotada a .rt para no alterar los módulos aún no integrados (.legacy-scope). */
+.rt, .rt *, .rt *::before, .rt *::after { box-sizing: border-box; }
+.rt {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+:where(.rt) :is(h1, h2, h3, h4) { margin: 0; line-height: var(--lh-tight); letter-spacing: normal; color: inherit; font-size: inherit; }
+:where(.rt) p { margin: 0; }
+:where(.rt) :is(ul, ol) { margin: 0; padding: 0; list-style: none; }
+:where(.rt) :is(img, svg) { display: block; max-width: 100%; }
+:where(.rt) :is(button, input, select, textarea) { font: inherit; color: inherit; }
+:where(.rt) button { cursor: pointer; }
+:where(.rt) button:disabled { cursor: not-allowed; }
+:where(.rt) a { color: var(--text-link); }
+:where(.rt) :focus { outline: none; }
+:where(.rt) :focus-visible { box-shadow: var(--ring); border-radius: var(--r-xs); outline: none; }
+.rt-app { min-height: 100dvh; background: var(--bg-app); }
+.display { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.005em; }
+.kicker { font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--text-muted); }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .rt *, .rt *::before, .rt *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

@@ -13,7 +13,7 @@ export default defineConfig({
         name: 'Rafa Tenis',
         short_name: 'Rafa Tenis',
         description: 'Herramienta en desarrollo para la gestión de Rafa Tenis.',
-        theme_color: '#124e3b',
+        theme_color: '#0b3a2b',
         background_color: '#f7f4ed',
         display: 'standalone',
         lang: 'es-AR',

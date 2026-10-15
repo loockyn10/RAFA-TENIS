@@ -5,6 +5,7 @@ export const CALENDAR_START_HOUR = 7
 export const CALENDAR_END_HOUR = 23
 export const SLOT_MINUTES = 30
 export const SLOT_HEIGHT = 32
+export const OCCUPATION_FIELDS = 'id, club_id, court_id, customer_name, person_id, starts_at, ends_at, status, occupation_type, block_reason, recurrence_series_id, notes, created_by, created_at, updated_at'
 
 function dateParts(date: Date, timezone: string) {
   const parts = new Intl.DateTimeFormat('en-CA', {
