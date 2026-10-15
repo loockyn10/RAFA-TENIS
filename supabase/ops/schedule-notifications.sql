@@ -12,8 +12,9 @@
 --   select vault.create_secret('<mismo valor que el secreto PUSH_DISPATCH_SECRET de la Edge Function>', 'push_dispatch_secret');
 --   select vault.create_secret('https://<PROJECT_REF>.supabase.co', 'project_url');
 --   select vault.create_secret('<anon / publishable key del proyecto (es pública)>', 'anon_key');
--- (El gateway de Edge Functions exige un JWT válido; la clave anon alcanza para eso. La autorización real la hace la función con
---  x-dispatch-secret.)
+--  El gateway recibe la clave anon mediante el encabezado apikey.
+-- Authorization utiliza la misma clave anon legacy en formato JWT.
+-- La autorización del despachador se valida mediante x-dispatch-secret.
 
 -- ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
 -- 2. Recordatorios de reservas: cada hora (minuto 5), avisa ~24 h antes (1440 min). Cambiar el 1440 cambia la anticipación
@@ -36,10 +37,26 @@ select cron.schedule(
   select net.http_post(
     url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/dispatch-push',
     headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'anon_key'),
-      'x-dispatch-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'push_dispatch_secret')
-    ),
+  'Content-Type', 'application/json',
+
+  'apikey', (
+    SELECT decrypted_secret
+    FROM vault.decrypted_secrets
+    WHERE name = 'anon_key'
+  ),
+
+  'Authorization', 'Bearer ' || (
+    SELECT decrypted_secret
+    FROM vault.decrypted_secrets
+    WHERE name = 'anon_key'
+  ),
+
+  'x-dispatch-secret', (
+    SELECT decrypted_secret
+    FROM vault.decrypted_secrets
+    WHERE name = 'push_dispatch_secret'
+  )
+),
     body := '{}'::jsonb,
     timeout_milliseconds := 20000
   )
