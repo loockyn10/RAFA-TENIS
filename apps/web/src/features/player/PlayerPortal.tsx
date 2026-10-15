@@ -8,6 +8,7 @@ import { PlayerShell, type PlayerSection } from './PlayerShell'
 import { PlayerBook, PlayerHome, PlayerProfile, PlayerTournaments, PlayerTurns, type PlayerDue, type PlayerProfileData, type Remote } from './PlayerScreens'
 import type { PortalTournament } from './portalUtils'
 import { NotificationBell } from '../notifications/NotificationBell'
+import { PushOnboarding } from '../notifications/PushOnboarding'
 import { PlayerNews } from '../news/PlayerNews'
 import { fetchFeed } from '../news/newsApi'
 
@@ -99,6 +100,7 @@ export function PlayerPortal({ access, user, onOpenAdmin }: { access: PlayerClub
   return (
     <PlayerShell section={section} onNavigate={navigate} club={club} access={access} onSelectClub={selectClub} userEmail={user.email ?? ''} onOpenAdmin={onOpenAdmin} onSignOut={() => void closeSession()} signingOut={signingOut}
       notifications={<NotificationBell client={client} clubId={club.club_id} timezone={club.timezone} onOpenNotification={openNotification} />}>
+      <PushOnboarding client={client} userId={user.id} />
       {core.status === 'loading' && <div role="status" aria-label="Cargando tu portal"><SkeletonCards count={3} height={120} /></div>}
       {core.status === 'error' && <ErrorState title="No pudimos cargar tu portal" body="Revisá la conexión e intentá de nuevo. No se perdió ningún dato." onRetry={() => void loadCore()} />}
       {ready && section === 'home' && <PlayerHome club={club} profile={ready.profile} reservations={ready.reservations} dues={dues} tournaments={tournaments} news={news} onNavigate={navigate} />}
