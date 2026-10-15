@@ -6,6 +6,7 @@ import { courtShort } from '../reservations/occupationView'
 import { courtBusyIn, useDayOccupations } from '../reservations/useDayOccupations'
 import { createQuickPerson, usePersonSearch } from '../people/usePersonSearch'
 import { bracketSize, buildBracketMatches, matchState, roundsOf } from './tournamentUtils'
+import { RankingView } from './RankingView'
 import { Badge, Button, Chip, ConfirmDialog, EmptyState, ErrorState, Field, Icon, IconButton, Modal, PageHead, SegmentedTabs, SelectInput, SkeletonCards, Switch, TextArea, TextInput, type Tone } from '../../design/ui'
 import { CourtPicker, PersonPicker, type PickerItem } from '../../design/domain'
 import { Bracket, MatchCard } from '../../design/bracket'
@@ -44,6 +45,7 @@ export function TournamentPanel({ client, club, courts, canManage, requestedRese
   const [tab, setTab] = useState<CatTab>('bracket')
   const [matchId, setMatchId] = useState<string | null>(null)
   const [filter, setFilter] = useState<TournamentStatus | 'all'>('all')
+  const [view, setView] = useState<'list' | 'ranking'>('list')
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<Tournament | null>(null)
   const [newCategory, setNewCategory] = useState(false)
@@ -248,7 +250,9 @@ export function TournamentPanel({ client, club, courts, canManage, requestedRese
     <div className="module">
       <PageHead eyebrow="Club" title="Torneos" meta={`${plural(tournaments.length, 'torneo', 'torneos')} · ${liveTournaments.length} en juego`} actions={canManage ? <Button variant="accent" icon="plus" onClick={() => setCreating(true)}>Nuevo torneo</Button> : undefined} />
       {noticeBlock}
-      {status === 'loading' ? <SkeletonCards count={3} height={150} />
+      <SegmentedTabs label="Sección de torneos" size="sm" value={view} onChange={setView} items={[{ id: 'list', label: 'Torneos', icon: 'trophy' }, { id: 'ranking', label: 'Ranking', icon: 'medal' }]} />
+      {view === 'ranking' ? <RankingView client={client} clubId={club.id} />
+        : status === 'loading' ? <SkeletonCards count={3} height={150} />
         : tournaments.length === 0 ? (
           <div className="card"><EmptyState icon="trophy" title="Todavía no hay torneos" body={canManage ? 'Creá uno, sumá categorías e inscriptos y generá el cuadro cuando cierre la inscripción.' : 'Cuando se cree el primero, lo vas a ver acá.'} action={canManage ? <Button variant="accent" icon="plus" onClick={() => setCreating(true)}>Nuevo torneo</Button> : undefined} /></div>
         ) : (

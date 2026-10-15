@@ -168,6 +168,96 @@ describe('PlayerPortal', () => {
     expect(screen.getByText(/Las cuotas se pagan en el club/)).toBeInTheDocument()
   })
 
+  describe('Mi perfil compacto', () => {
+    const profile = { full_name: 'Juan Pérez', phone: '11 5555-1234', email: 'juan@correo.test', membership_status: 'active' }
+    const openProfile = async (client: SupabaseClient) => {
+      renderPortal(client)
+      fireEvent.click((await screen.findAllByRole('button', { name: /Perfil/ }))[0])
+      return screen.findByRole('heading', { name: 'Mi perfil' })
+    }
+
+    it('muestra una tarjeta de solo lectura con nombre, teléfono y correo, sin formulario, y deja las cuotas a la vista', async () => {
+      const { client } = makeClient({ player_profile: () => ({ data: profile, error: null }) })
+      await openProfile(client)
+      expect(screen.getByRole('heading', { name: 'Juan Pérez' })).toBeInTheDocument()
+      expect(screen.getByText('11 5555-1234')).toBeInTheDocument()
+      expect(screen.getByText('juan@correo.test')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Editar mis datos' })).toBeInTheDocument()
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Guardar cambios' })).not.toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Mis cuotas' })).toBeInTheDocument()
+    })
+
+    it('indica «Sin cargar» cuando faltan teléfono o correo', async () => {
+      const { client } = makeClient({ player_profile: () => ({ data: { ...profile, phone: null, email: null }, error: null }) })
+      await openProfile(client)
+      expect(screen.getAllByText('Sin cargar')).toHaveLength(2)
+    })
+
+    it('el lápiz abre el formulario existente; guardar usa la RPC de siempre y vuelve a la tarjeta', async () => {
+      let current = profile
+      const { client, rpc } = makeClient({
+        player_profile: () => ({ data: current, error: null }),
+        update_player_profile: (args) => { current = { ...current, full_name: String(args.p_full_name), phone: String(args.p_phone), email: String(args.p_email) }; return { data: null, error: null } },
+      })
+      await openProfile(client)
+      fireEvent.click(screen.getByRole('button', { name: 'Editar mis datos' }))
+      const save = screen.getByRole('button', { name: 'Guardar cambios' })
+      expect(save).toBeDisabled()
+      fireEvent.change(screen.getByLabelText(/Teléfono/), { target: { value: '11 4444-0000' } })
+      fireEvent.click(save)
+      await waitFor(() => expect(rpc).toHaveBeenCalledWith('update_player_profile', { p_club_id: 'club-a', p_full_name: 'Juan Pérez', p_phone: '11 4444-0000', p_email: 'juan@correo.test' }))
+      expect(await screen.findByText('Datos actualizados')).toBeInTheDocument()
+      expect(await screen.findByText('11 4444-0000')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Guardar cambios' })).not.toBeInTheDocument()
+    })
+
+    it('conserva la validación del nombre y permite cancelar sin guardar', async () => {
+      const { client, rpc } = makeClient({ player_profile: () => ({ data: profile, error: null }) })
+      await openProfile(client)
+      fireEvent.click(screen.getByRole('button', { name: 'Editar mis datos' }))
+      fireEvent.change(screen.getByLabelText(/Nombre/), { target: { value: '   ' } })
+      expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeDisabled()
+      fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+      expect(rpc).not.toHaveBeenCalledWith('update_player_profile', expect.anything())
+      expect(screen.getByRole('heading', { name: 'Juan Pérez' })).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Editar mis datos' }))
+      expect(screen.getByLabelText(/Nombre/)).toHaveValue('Juan Pérez')
+    })
+
+    it('si el servidor rechaza el cambio se mantiene el formulario con el aviso de error', async () => {
+      const { client } = makeClient({ player_profile: () => ({ data: profile, error: null }), update_player_profile: () => ({ data: null, error: { message: 'x' } }) })
+      await openProfile(client)
+      fireEvent.click(screen.getByRole('button', { name: 'Editar mis datos' }))
+      fireEvent.change(screen.getByLabelText(/Teléfono/), { target: { value: '11 1' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+      expect(await screen.findByText('No se guardaron los cambios')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeInTheDocument()
+    })
+  })
+
+  describe('Ranking dentro de Torneos', () => {
+    const rankingPayload = { season: 2026, seasons: [2026], modality: 'singles', my_person_id: 'person-a', rows: [
+      { position: 1, person_id: 'person-x', name: 'Ana Gómez', points: 100, tournaments: 1, titles: 1, runner_ups: 0 },
+      { position: 2, person_id: 'person-a', name: 'Juan Pérez', points: 60, tournaments: 1, titles: 0, runner_ups: 1 },
+    ] }
+
+    it('se abre desde la pestaña Ranking de Torneos (no hay otra sección en la barra) y destaca la posición propia', async () => {
+      const { client, rpc } = makeClient({ club_ranking: () => ({ data: rankingPayload, error: null }) })
+      renderPortal(client)
+      fireEvent.click((await screen.findAllByRole('button', { name: /Torneos/ }))[0])
+      expect(screen.queryByRole('button', { name: /^Ranking/ })).not.toBeInTheDocument()
+      fireEvent.click(await screen.findByRole('tab', { name: 'Ranking' }))
+      const list = await screen.findByRole('list', { name: 'Ranking Singles 2026' })
+      expect(rpc).toHaveBeenCalledWith('club_ranking', { p_club_id: 'club-a', p_season: null, p_modality: 'singles' })
+      const items = within(list).getAllByRole('listitem')
+      expect(items[1]).toHaveClass('is-mine')
+      expect(within(items[1]).getByText('Vos')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('tab', { name: 'Torneos' }))
+      expect(await screen.findByText('No hay torneos publicados')).toBeInTheDocument()
+    })
+  })
+
   it('permite cambiar a administración solo cuando la cuenta tiene ese acceso', async () => {
     const onOpenAdmin = vi.fn()
     const { client } = makeClient()

@@ -44,7 +44,7 @@ Estos puntos describen el contexto conversado y deben contrastarse con Rafa ante
 - **Privacidad:** contactos, pagos y notas privados; torneos publicados exponen solo datos autorizados.
 
 ## Fuera del MVP de calendario
-Pagos automáticos/Mercado Pago, facturación, POS, stock, torneos completos, ranking, publicación en stores, WhatsApp automatizado, check-in geolocalizado.
+Pagos automáticos/Mercado Pago, facturación, POS, stock, torneos completos, publicación en stores, WhatsApp automatizado, check-in geolocalizado.
 
 ## Criterio de éxito inicial
 Rafa identifica en segundos las seis canchas, reserva para alguien que contactó fuera de la app, edita/cancela fácilmente y no puede confirmar dos ocupaciones simultáneas de una misma cancha desde distintos operadores.
@@ -60,7 +60,7 @@ El Sprint 5 incorpora localmente cuotas mensuales explícitas para socios activo
 
 El Sprint 6 incorpora localmente la **Escuela de tenis**: una persona existente puede tener perfil de profesor sin obtener permisos administrativos; las clases individuales o grupales admiten cero o más alumnos registrados, cupo y recurrencia semanal limitada a 12 ocurrencias. Cada clase usa la agenda única de canchas, por lo que una reserva, bloqueo u otra clase superpuesta se rechaza en PostgreSQL. No se incluyen liquidaciones, pagos docentes ni mensualidades de alumnos.
 
-El Sprint 7 incorpora localmente **Torneos**: torneo con categorías Singles/Dobles, inscripciones de fichas `club_people`, fixture de eliminación directa de 2 a 32 inscripciones, pases libres automáticos, resultados manuales/W.O. y campeón. Cada partido programado usa la agenda única de canchas; no existe una agenda paralela ni se generan cobros. Quedan fuera zonas, ranking, siembra, inscripción pública y correcciones avanzadas de resultados.
+El Sprint 7 incorpora localmente **Torneos**: torneo con categorías Singles/Dobles, inscripciones de fichas `club_people`, fixture de eliminación directa de 2 a 32 inscripciones, pases libres automáticos, resultados manuales/W.O. y campeón. Cada partido programado usa la agenda única de canchas; no existe una agenda paralela ni se generan cobros. El Sprint 16 suma un ranking interno por temporada calculado desde los resultados (`DECISIONS.md` D019). Quedan fuera zonas, siembra, inscripción pública y correcciones avanzadas de resultados.
 
 El Sprint 8 incorpora localmente **Cantina**: catálogo configurable por club, productos con precio en centavos y ventas rápidas. Una venta cobrada puede ser anónima; un consumo pendiente exige una ficha existente de `club_people` (o alta rápida). Las ventas congelan producto, nombre y precio unitario históricos; los pagos parciales se registran por venta y el saldo se deriva de ventas confirmadas menos pagos. Cantina y cuotas sociales son conceptos separados. No incluye stock, caja formal, facturación, descuentos ni integración de Mercado Pago.
 

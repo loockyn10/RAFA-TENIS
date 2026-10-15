@@ -107,7 +107,7 @@ export function PlayerPortal({ access, user, onOpenAdmin }: { access: PlayerClub
       {ready && section === 'book' && <PlayerBook client={client} club={club} settings={ready.settings} reservations={ready.reservations} onBooked={() => void loadCore(true)} onNavigate={navigate} />}
       {ready && section === 'turns' && <PlayerTurns client={client} club={club} settings={ready.settings} reservations={ready.reservations} onChanged={() => void loadCore(true)} onNavigate={navigate} />}
       {ready && section === 'news' && <PlayerNews client={client} club={club} feed={news} onRetry={() => void loadNews()} openPostId={openPostId} onOpenHandled={() => setOpenPostId(null)} />}
-      {ready && section === 'tournaments' && <PlayerTournaments tournaments={tournaments} profile={ready.profile} onRetry={() => void loadTournaments()} />}
+      {ready && section === 'tournaments' && <PlayerTournaments client={client} club={club} tournaments={tournaments} profile={ready.profile} onRetry={() => void loadTournaments()} />}
       {ready && section === 'profile' && <PlayerProfile client={client} club={club} profile={ready.profile} dues={dues} onSaved={() => void loadCore(true)} onRetryDues={() => void loadDues()} />}
     </PlayerShell>
   )

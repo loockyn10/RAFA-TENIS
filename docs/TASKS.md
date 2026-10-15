@@ -102,6 +102,13 @@ Auditoría sin correcciones: 0 críticos, 1 alto, 4 medios, 8 bajos. **Sprint 10
 - [ ] Acordar reglas de profesores, torneos y cantina cuando llegue su sprint.
 - [ ] Revisar política de backup/restore y operación si no hay conexión antes del piloto.
 
+## Sprint 16 — Perfil compacto + Ranking interno
+- [ ] Aplicar `supabase/migrations/20261015010000_internal_ranking.sql` en Supabase (requiere 01–15; solo crea funciones de lectura, sin tablas ni datos) **antes** de desplegar el frontend de este sprint; sin ella la pestaña Ranking muestra un error con «Reintentar» (el resto de la app no se afecta).
+- [ ] Validar con Rafa la escala (100/60/35/15/5), que puntúe cada categoría al finalizar (no el torneo entero) y las reglas de W.O./BYE de `DECISIONS.md` D019; si cambia algo, se modifica una única función SQL.
+- [ ] Recorrer con datos reales: torneo Singles y Dobles finalizados, ranking en administración y en el portal (jugador resaltado con «Vos»), temporada anterior y detalle por jugador; probar con cuentas de dos clubes.
+- [ ] Abierto (heredado): la app no permite corregir un resultado ya cargado; el ranking lo reflejaría automáticamente si se habilita esa corrección.
+- [ ] Ideas futuras (no implementadas): ponderar la escala por cantidad de participantes del cuadro, ranking por categoría o nivel.
+
 ## Riesgos
 - Cambiar el alcance al desarrollar (añadir POS, cobros, torneos prematuramente).
 - Tomar precios/horarios de ejemplo como confirmados.

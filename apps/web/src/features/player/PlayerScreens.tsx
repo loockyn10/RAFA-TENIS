@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { Badge, Button, Chip, CourtMark, EmptyState, ErrorState, Field, Icon, Modal, SectionHeader, SegmentedTabs, SkeletonCards, TextInput } from '../../design/ui'
+import { Badge, Button, Chip, CourtMark, EmptyState, ErrorState, Field, Icon, IconButton, Modal, SectionHeader, SegmentedTabs, SkeletonCards, TextInput } from '../../design/ui'
 import { useAsyncAction } from '../../design/useAsyncAction'
 import { durationLabel } from '../../design/dates'
 import { plural } from '../../design/format'
@@ -17,6 +17,7 @@ import {
   type PortalCategory, type PortalTournament,
 } from './portalUtils'
 import type { PlayerSection } from './PlayerShell'
+import { RankingView } from '../tournaments/RankingView'
 
 export type PlayerProfileData = { full_name: string; phone: string | null; email: string | null; membership_status: string | null }
 export type PlayerDue = { id: string; period: string; due_date: string; amount_cents: number; paid_cents: number; balance_cents: number; payments: { amount_cents: number; payment_date: string; payment_method: string }[] }
@@ -385,16 +386,29 @@ export function PlayerTurns({ client, club, settings, reservations, onChanged, o
 const TOURNAMENT_STATUS: Record<string, string> = { registration_open: 'Inscripción abierta', in_progress: 'En juego', completed: 'Finalizado', cancelled: 'Cancelado' }
 const MATCH_STATUS: Record<string, string> = { pending: 'Pendiente', scheduled: 'Programado', completed: 'Finalizado', cancelled: 'Cancelado' }
 
-export function PlayerTournaments({ tournaments, profile, onRetry }: { tournaments: Remote<PortalTournament[]>; profile: PlayerProfileData; onRetry: () => void }) {
+export function PlayerTournaments({ client, club, tournaments, profile, onRetry }: { client: SupabaseClient; club: PlayerClubAccess; tournaments: Remote<PortalTournament[]>; profile: PlayerProfileData; onRetry: () => void }) {
+  const [view, setView] = useState<'list' | 'ranking'>('list')
   const visible = publishedTournaments(tournaments.data)
   const mine = tournaments.status === 'ready' ? findMyTournament(tournaments.data, profile.full_name) : null
+  const tabs = <SegmentedTabs label="Sección de torneos" value={view} onChange={setView} items={[{ id: 'list', label: 'Torneos', icon: 'trophy' }, { id: 'ranking', label: 'Ranking', icon: 'medal' }]} />
+  if (view === 'ranking') {
+    return (
+      <div className="p-tournament">
+        <header className="p-page-head"><h1 className="display">Torneos</h1>{tabs}</header>
+        <RankingView client={client} clubId={club.club_id} />
+      </div>
+    )
+  }
   return (
     <Guard remote={tournaments} onRetry={onRetry}>
       {visible.length === 0 ? (
-        <EmptyState icon="trophy" title="No hay torneos publicados" body="Cuando el club publique uno vas a ver acá tu cuadro y tus partidos." />
+        <div className="p-tournament">
+          <header className="p-page-head"><h1 className="display">Torneos</h1>{tabs}</header>
+          <EmptyState icon="trophy" title="No hay torneos publicados" body="Cuando el club publique uno vas a ver acá tu cuadro y tus partidos." />
+        </div>
       ) : (
         <div className="p-tournament">
-          <header className="p-page-head"><h1 className="display">Torneos</h1></header>
+          <header className="p-page-head"><h1 className="display">Torneos</h1>{tabs}</header>
           {mine && (
             <article className="match-card texture-court">
               <p className="kicker kicker-on-dark">{mine.next ? `Tu próximo partido · ${roundName(mine.next.round_number, mine.rounds)} · ${mine.category.name}` : `${mine.tournament.name} · ${mine.category.name}`}</p>
@@ -456,9 +470,14 @@ export function PlayerProfile({ client, club, profile, dues, onSaved, onRetryDue
   const [phone, setPhone] = useState(profile.phone ?? '')
   const [email, setEmail] = useState(profile.email ?? '')
   const [saved, setSaved] = useState(false)
+  const [editing, setEditing] = useState(false)
   const action = useAsyncAction()
   useEffect(() => { setFullName(profile.full_name); setPhone(profile.phone ?? ''); setEmail(profile.email ?? '') }, [profile])
   const dirty = fullName !== profile.full_name || phone !== (profile.phone ?? '') || email !== (profile.email ?? '')
+
+  const startEditing = () => { action.reset(); setSaved(false); setEditing(true) }
+  /** Cancelar descarta lo escrito y vuelve a la tarjeta con los datos guardados. */
+  const stopEditing = () => { action.reset(); setFullName(profile.full_name); setPhone(profile.phone ?? ''); setEmail(profile.email ?? ''); setEditing(false) }
 
   const save = (event: FormEvent) => {
     event.preventDefault()
@@ -467,6 +486,7 @@ export function PlayerProfile({ client, club, profile, dues, onSaved, onRetryDue
       const { error } = await client.rpc('update_player_profile', { p_club_id: club.club_id, p_full_name: fullName, p_phone: phone, p_email: email })
       if (error) return 'No pudimos guardar tus datos. Revisá la conexión e intentá de nuevo.'
       setSaved(true)
+      setEditing(false)
       onSaved()
       return null
     })
@@ -475,18 +495,32 @@ export function PlayerProfile({ client, club, profile, dues, onSaved, onRetryDue
   return (
     <div className="p-profile">
       <header className="p-page-head"><h1 className="display">Mi perfil</h1></header>
+      {saved && !editing && <div className="inline-alert inline-alert-success" role="status"><Icon name="checkCircle" size={20} /><div><strong>Datos actualizados</strong></div></div>}
       <div className="p-profile-grid">
-        <section className="card" aria-labelledby="mis-datos">
-          <SectionHeader id="mis-datos" title="Datos de contacto" />
-          <form className="stack" onSubmit={save}>
-            <Field label="Nombre" hint="Es el nombre de tu ficha en el club.">{(id, describedBy) => <TextInput id={id} value={fullName} aria-describedby={describedBy} required onChange={(event) => { setFullName(event.target.value); setSaved(false) }} />}</Field>
-            <Field label="Teléfono" optional>{(id) => <TextInput id={id} type="tel" icon="phone" value={phone} onChange={(event) => { setPhone(event.target.value); setSaved(false) }} />}</Field>
-            <Field label="Email de contacto" optional hint="No cambia el email con el que iniciás sesión.">{(id, describedBy) => <TextInput id={id} type="email" icon="mail" value={email} aria-describedby={describedBy} onChange={(event) => { setEmail(event.target.value); setSaved(false) }} />}</Field>
-            {action.failed && <div className="inline-alert inline-alert-danger" role="alert"><Icon name="alert" size={20} /><div><strong>No se guardaron los cambios</strong><p>{action.message}</p></div></div>}
-            {saved && !dirty && <div className="inline-alert inline-alert-success" role="status"><Icon name="checkCircle" size={20} /><div><strong>Datos actualizados</strong></div></div>}
-            <Button type="submit" variant="primary" icon="check" disabled={!dirty || fullName.trim().length === 0} loading={action.saving}>Guardar cambios</Button>
-          </form>
-        </section>
+        {editing ? (
+          <section className="card" aria-labelledby="mis-datos">
+            <SectionHeader id="mis-datos" title="Editar datos de contacto" />
+            <form className="stack" onSubmit={save}>
+              <Field label="Nombre" hint="Es el nombre de tu ficha en el club.">{(id, describedBy) => <TextInput id={id} value={fullName} aria-describedby={describedBy} required onChange={(event) => { setFullName(event.target.value); setSaved(false) }} />}</Field>
+              <Field label="Teléfono" optional>{(id) => <TextInput id={id} type="tel" icon="phone" value={phone} onChange={(event) => { setPhone(event.target.value); setSaved(false) }} />}</Field>
+              <Field label="Email de contacto" optional hint="No cambia el email con el que iniciás sesión.">{(id, describedBy) => <TextInput id={id} type="email" icon="mail" value={email} aria-describedby={describedBy} onChange={(event) => { setEmail(event.target.value); setSaved(false) }} />}</Field>
+              {action.failed && <div className="inline-alert inline-alert-danger" role="alert"><Icon name="alert" size={20} /><div><strong>No se guardaron los cambios</strong><p>{action.message}</p></div></div>}
+              <div className="form-actions">
+                <Button variant="ghost" onClick={stopEditing} disabled={action.saving}>Cancelar</Button>
+                <Button type="submit" variant="primary" icon="check" disabled={!dirty || fullName.trim().length === 0} loading={action.saving}>Guardar cambios</Button>
+              </div>
+            </form>
+          </section>
+        ) : (
+          <section className="card profile-card" aria-labelledby="mis-datos">
+            <IconButton className="profile-card-edit" icon="edit" label="Editar mis datos" variant="secondary" size="sm" onClick={startEditing} />
+            <h2 id="mis-datos" className="display profile-card-name">{profile.full_name}</h2>
+            <dl className="profile-card-data">
+              <div><dt><Icon name="phone" size={16} />Teléfono</dt><dd>{profile.phone || 'Sin cargar'}</dd></div>
+              <div><dt><Icon name="mail" size={16} />Correo</dt><dd>{profile.email || 'Sin cargar'}</dd></div>
+            </dl>
+          </section>
+        )}
         <section className="card" aria-labelledby="mis-cuotas">
           <SectionHeader id="mis-cuotas" title="Mis cuotas" action={profile.membership_status === 'active' ? <Badge tone="success" icon="check">{membershipLabel(profile.membership_status)}</Badge> : <Badge tone="neutral">{membershipLabel(profile.membership_status)}</Badge>} />
           {dues.status === 'loading' ? <SkeletonCards count={2} height={56} />

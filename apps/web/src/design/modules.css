@@ -485,3 +485,34 @@ button.mcard:hover { border-color: var(--clay-300); box-shadow: var(--shadow-2);
 .rules-preview { display: grid; gap: var(--s-2); padding-top: var(--s-2); border-top: 1px dashed var(--line-strong); }
 .rules-preview-card { display: flex; align-items: flex-start; gap: var(--s-2); padding: 14px 16px; border-radius: var(--r-md); background: var(--green-900); color: var(--text-on-dark); }
 .rules-preview-card .icon { flex: none; margin-top: 2px; color: var(--ball-500); }
+
+/* Ranking interno del club (Torneos, administración y portal) */
+.ranking { display: grid; gap: var(--s-4); min-width: 0; }
+.ranking-controls { display: grid; gap: var(--s-3); }
+@media (min-width: 640px) { .ranking-controls { grid-template-columns: minmax(0, 1fr) 180px; align-items: end; } }
+.ranking-meta { color: var(--text-muted); font-size: var(--fs-sm); }
+.ranking-meta b { color: var(--text); }
+.ranking-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ranking-item > button { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; align-items: center; gap: var(--s-3); width: 100%; min-height: 64px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow-1); color: inherit; text-align: left; cursor: pointer; }
+.ranking-item > button:hover { border-color: var(--green-600); }
+.ranking-item > button:focus-visible { outline: none; box-shadow: var(--ring); }
+.ranking-pos { display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 40px; height: 40px; border-radius: 50%; background: var(--chalk-100); color: var(--ink-700); font-size: 1.125rem; }
+.ranking-main { display: grid; min-width: 0; }
+.ranking-main strong { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; overflow-wrap: anywhere; }
+.ranking-main > span { color: var(--text-muted); font-size: var(--fs-sm); }
+.ranking-points { display: grid; justify-items: end; line-height: 1; }
+.ranking-points b { font-size: 1.5rem; }
+.ranking-points small { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+.ranking-item > button > svg { color: var(--ink-500); }
+.ranking-item.is-top > button { border-color: var(--green-300); background: var(--green-50); }
+.ranking-item.is-top-1 > button { border-color: var(--ball-500); box-shadow: 0 0 0 2px var(--ball-500); background: var(--ball-100); }
+.ranking-item.is-top-1 .ranking-pos { background: var(--ball-500); color: var(--green-950); }
+.ranking-item.is-top-2 .ranking-pos { background: var(--chalk-300); color: var(--ink-900); }
+.ranking-item.is-top-3 .ranking-pos { background: var(--clay-300); color: var(--clay-700); }
+.ranking-item.is-mine > button { border-color: var(--clay-500); box-shadow: inset 4px 0 0 var(--clay-500); }
+.ranking-item.is-top-1.is-mine > button { box-shadow: 0 0 0 2px var(--ball-500), inset 4px 0 0 var(--clay-500); }
+.ranking-detail { display: grid; margin: 0; padding: 0; list-style: none; }
+.ranking-detail li { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) 0; border-bottom: 1px solid var(--border); }
+.ranking-detail-main { display: grid; min-width: 0; }
+.ranking-detail-main span { color: var(--text-muted); font-size: var(--fs-sm); }
+.ranking-detail-result { display: grid; justify-items: end; gap: 4px; flex: none; }
