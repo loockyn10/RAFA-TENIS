@@ -50,3 +50,39 @@ export function todayInClubTimezone(timezone: string) {
   const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]))
   return `${values.year}-${values.month}-${values.day}`
 }
+
+/** Estado para mostrar: una cuota sin pagos cuyo vencimiento ya pasó figura como «Vencida» (el saldo no cambia). */
+export type DisplayDueStatus = DueStatus | 'overdue'
+
+export const DUE_STATUS_LABEL: Record<DisplayDueStatus, string> = { paid: 'Pagada', partial: 'Pago parcial', overdue: 'Vencida', pending: 'Pendiente' }
+
+export function displayDueStatus(due: MembershipDue, payments: MembershipDuePayment[], today: string): DisplayDueStatus {
+  const status = dueStatus(due, payments)
+  return status === 'pending' && due.due_date < today ? 'overdue' : status
+}
+
+/** «Octubre 2026» (o solo «Octubre») desde un período AAAA-MM o AAAA-MM-01. */
+export function periodLabel(period: string, withYear = true): string {
+  const [year, month] = period.split('-').map(Number)
+  const name = new Intl.DateTimeFormat('es-AR', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, 1, 12)))
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)}${withYear ? ` ${year}` : ''}`
+}
+
+export function periodShort(period: string): string {
+  const [year, month] = period.split('-').map(Number)
+  const name = new Intl.DateTimeFormat('es-AR', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, 1, 12))).replace('.', '')
+  return name.charAt(0).toUpperCase() + name.slice(1)
+}
+
+/** Suma `delta` meses a un período AAAA-MM. */
+export function shiftPeriod(period: string, delta: number): string {
+  const [year, month] = period.split('-').map(Number)
+  const index = year * 12 + (month - 1) + delta
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, '0')}`
+}
+
+/** Como `formatArs`, pero sin «,00» cuando el importe es entero (los centavos reales siempre se muestran). */
+export function formatMoney(cents: number) {
+  const whole = cents % 100 === 0
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2 }).format(cents / 100)
+}

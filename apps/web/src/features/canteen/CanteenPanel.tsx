@@ -44,7 +44,31 @@ export function PersonCanteenAccount({ client, club, personId }: { client: Supab
     void load(); return () => { cancelled = true }
   }, [client, club.id, personId])
   const pending = sales.reduce((total, sale) => total + balanceForSale(sale, payments), 0)
-  return <section className="person-canteen"><h3>Consumos de cantina</h3>{loading ? <p className="field-help">Cargando consumos…</p> : <>{sales.length === 0 ? <p className="field-help">No hay consumos de cantina asociados.</p> : <><p className="account-total"><strong>Saldo pendiente de cantina: {formatArs(pending)}</strong></p><ul>{sales.map((sale) => <li key={sale.id}>{dateTime(sale.created_at, club.timezone)} · {formatArs(sale.total_cents)} · <span>{statusLabel(saleStatus(sale, payments))}</span>{paidForSale(sale.id, payments) > 0 && <small> Cobrado: {formatArs(paidForSale(sale.id, payments))}</small>}</li>)}</ul></>}</>}</section>
+  return (
+    <section className="detail-section" aria-labelledby="pc-title">
+      <h3 id="pc-title" className="detail-section-title">Consumos de cantina</h3>
+      {loading ? <p className="muted">Cargando consumos…</p> : sales.length === 0 ? <p className="muted">No hay consumos de cantina asociados.</p> : (
+        <>
+          <div className="balance-grid">
+            <div className={`balance ${pending ? 'is-due' : ''}`}>
+              <span>Saldo pendiente de cantina</span>
+              <strong className="display num">{pending ? formatArs(pending) : 'Al día'}</strong>
+              <small>{pending ? 'Consumos a cuenta' : 'Sin consumos pendientes'}</small>
+            </div>
+          </div>
+          <ul className="mini-list">
+            {sales.map((sale) => (
+              <li key={sale.id}>
+                <span>{dateTime(sale.created_at, club.timezone)}</span>
+                <span className="num">{formatArs(sale.total_cents)}{paidForSale(sale.id, payments) > 0 ? ` · cobrado ${formatArs(paidForSale(sale.id, payments))}` : ''}</span>
+                <Badge tone={STATUS_TONE[saleStatus(sale, payments)]}>{statusLabel(saleStatus(sale, payments))}</Badge>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  )
 }
 
 export function CanteenPanel({ client, club, canManageCatalog }: { client: SupabaseClient; club: Club; canManageCatalog: boolean }) {

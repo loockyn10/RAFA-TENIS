@@ -2,10 +2,11 @@
  * Componentes con conocimiento del dominio del club construidos sobre el design system.
  * Solo presentación: no contienen reglas de negocio ni consultas.
  */
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { PaymentMethod } from '../types/domain'
-import { Chip, CourtMark, Icon, type IconName } from './ui'
+import { Avatar, Badge, Button, Chip, CourtMark, EmptyState, Field, Icon, Modal, TextInput, type IconName } from './ui'
 import { PAYMENT_LABELS } from './paymentLabels'
+import { normalizeSearch } from './format'
 
 const METHODS: { id: PaymentMethod; icon: IconName }[] = [
   { id: 'cash', icon: 'cash' },
@@ -44,6 +45,82 @@ export function CourtPicker({ courts, value, onChange, isBusy, short }: { courts
           </button>
         )
       })}
+    </div>
+  )
+}
+
+export type PickerItem = { id: string; name: string; hint?: string; badge?: ReactNode; disabledReason?: string }
+
+/**
+ * Buscador de fichas reutilizado por cuotas, escuela y torneos. Presentacional: quien lo usa decide de dónde salen
+ * los resultados (lista local o consulta) y qué hace `onCreate` (alta rápida real, sin cuenta ni membresía).
+ */
+export function PersonPicker({ open, title, hint, items, query, onQueryChange, onPick, onCreate, onClose, loading = false, busy = false, error, emptyBody }: {
+  open: boolean; title: string; hint?: string; items: PickerItem[]; query: string; onQueryChange: (value: string) => void
+  onPick: (id: string) => void; onCreate?: (name: string) => void; onClose: () => void; loading?: boolean; busy?: boolean; error?: string | null; emptyBody?: string
+}) {
+  const term = query.trim()
+  const exact = items.some((item) => normalizeSearch(item.name) === normalizeSearch(term))
+  return (
+    <Modal open={open} onClose={onClose} size="sm" title={title} busy={busy}>
+      <div className="picker">
+        <Field label="Buscar ficha" hint={hint}>{(id, describedBy) => <TextInput id={id} icon="search" value={query} aria-describedby={describedBy} placeholder="Nombre o teléfono" autoComplete="off" onChange={(event) => onQueryChange(event.target.value)} data-autofocus />}</Field>
+        {error && <p className="inline-alert inline-alert-danger" role="alert"><Icon name="alert" size={20} /><span>{error}</span></p>}
+        {items.length === 0 && !(onCreate && term.length > 1) ? (
+          <EmptyState icon="users" title={loading ? 'Buscando…' : 'Sin coincidencias'} body={loading ? undefined : emptyBody ?? (onCreate ? 'Escribí el nombre para crear una ficha rápida.' : 'Probá con otro nombre.')} />
+        ) : (
+          <ul className="picker-list">
+            {items.map((item) => (
+              <li key={item.id}>
+                <button type="button" className="picker-row" disabled={Boolean(item.disabledReason) || busy} onClick={() => onPick(item.id)}>
+                  <Avatar name={item.name} size="sm" />
+                  <span>{item.name}{(item.disabledReason ?? item.hint) && <small className="picker-reason">{item.disabledReason ?? item.hint}</small>}</span>
+                  {item.badge}
+                </button>
+              </li>
+            ))}
+            {onCreate && term.length > 1 && !exact && (
+              <li>
+                <button type="button" className="picker-row picker-create" disabled={busy} onClick={() => onCreate(term.replace(/\s+/g, ' '))}>
+                  <span className="picker-create-icon"><Icon name="userPlus" size={18} /></span>
+                  <span>Crear ficha «{term}»<small className="picker-reason">Alta rápida, sin cuenta ni membresía</small></span>
+                </button>
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
+    </Modal>
+  )
+}
+
+/** Fila de persona elegida con acción para quitarla. */
+export function PersonChip({ name, onRemove, meta }: { name: string; onRemove?: () => void; meta?: string }) {
+  return (
+    <li className="person-chip">
+      <Avatar name={name} size="sm" />
+      <span className="person-chip-name">{name}{meta && <small>{meta}</small>}</span>
+      {onRemove && <button type="button" className="person-chip-x" aria-label={`Quitar a ${name}`} onClick={onRemove}><Icon name="x" size={16} /></button>}
+    </li>
+  )
+}
+
+/** Condición de socio de una ficha real (la baja lógica manda sobre la membresía). */
+export function MemberBadge({ active, membership }: { active: boolean; membership?: 'active' | 'inactive' }) {
+  if (!active) return <Badge tone="neutral" icon="power">Baja</Badge>
+  if (membership === 'active') return <Badge tone="success">Socio</Badge>
+  if (membership === 'inactive') return <Badge tone="neutral">Socio inactivo</Badge>
+  return <Badge tone="neutral">No socio</Badge>
+}
+
+/** Barra fija de guardado para formularios con cambios pendientes (aparece solo si hay algo para guardar). */
+export function SaveBar({ visible, saving, failed, onDiscard, onSave, label = 'Cambios sin guardar' }: { visible: boolean; saving: boolean; failed: boolean; onDiscard: () => void; onSave: () => void; label?: string }) {
+  if (!visible) return null
+  return (
+    <div className="save-bar" role="region" aria-label="Guardar cambios">
+      <span className="save-bar-text"><Icon name={failed ? 'alert' : 'edit'} size={18} />{failed ? 'No se guardó. Reintentá.' : label}</span>
+      <Button variant="ghost" onClick={onDiscard} disabled={saving} className="save-bar-discard">Descartar</Button>
+      <Button variant="accent" icon={failed ? 'refresh' : 'check'} loading={saving} onClick={onSave}>{failed ? 'Reintentar' : 'Guardar'}</Button>
     </div>
   )
 }

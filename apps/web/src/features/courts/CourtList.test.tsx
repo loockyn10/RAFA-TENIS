@@ -25,11 +25,11 @@ describe('CourtList', () => {
     const rejectedSave = vi.fn().mockResolvedValue({ error: 'No se pudieron guardar los cambios.' })
     const { rerender } = render(<CourtList courts={courts} canManage={false} onSave={rejectedSave} />)
 
-    expect(screen.queryByRole('button', { name: 'Guardar cancha' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Editar Cancha/ })).not.toBeInTheDocument()
 
     rerender(<CourtList courts={courts} canManage onSave={rejectedSave} />)
-    fireEvent.click(screen.getAllByRole('button', { name: 'Editar cancha' })[0])
-    fireEvent.click(screen.getAllByRole('button', { name: 'Guardar cancha' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Editar Cancha 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cancha' }))
 
     expect(await screen.findByText('No se pudieron guardar los cambios.')).toBeInTheDocument()
   })

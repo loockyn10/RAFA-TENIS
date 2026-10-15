@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bracketSize, firstRoundPlan } from './tournamentUtils'
+import { bracketSize, buildBracketMatches, firstRoundPlan, matchState, roundsOf } from './tournamentUtils'
 
 describe('fixture de eliminación directa', () => {
   it('arma cuatro inscripciones sin pases libres', () => {
@@ -42,5 +42,34 @@ describe('fixture de eliminación directa', () => {
   it('rechaza cantidades fuera del MVP', () => {
     expect(() => bracketSize(1)).toThrow('entre 2 y 32')
     expect(() => bracketSize(33)).toThrow('entre 2 y 32')
+  })
+})
+
+describe('buildBracketMatches', () => {
+  const base = { club_id: 'c', tournament_id: 't', category_id: 'cat', winner_entry_id: null, reservation_id: null, status: 'pending' as const, score_text: null, is_walkover: false, finished_at: null }
+  const names: Record<string, string> = { e1: 'Ana', e2: 'Beto', e3: 'Carla' }
+  const nameOf = (id: string | null) => (id ? names[id] ?? null : null)
+
+  it('muestra el pase libre de 3 inscripciones como partido de ronda 1 sin crear filas nuevas', () => {
+    const matches = [
+      { ...base, id: 'm1', round_number: 1, position: 1, entry_one_id: 'e1', entry_two_id: 'e2' },
+      { ...base, id: 'm2', round_number: 2, position: 1, entry_one_id: null, entry_two_id: 'e3' },
+    ]
+    const result = buildBracketMatches(matches, nameOf, () => undefined)
+    expect(result.map((item) => [item.round, item.position, item.state])).toEqual([[1, 1, 'unscheduled'], [1, 2, 'bye'], [2, 1, 'waiting']])
+    expect(result[1]).toMatchObject({ a: 'Carla', b: null, winner: 'a' })
+  })
+
+  it('con 2 inscripciones (una sola ronda) no inventa pases libres', () => {
+    const result = buildBracketMatches([{ ...base, id: 'm1', round_number: 1, position: 1, entry_one_id: 'e1', entry_two_id: 'e2' }], nameOf, () => undefined)
+    expect(result).toHaveLength(1)
+    expect(roundsOf([{ round_number: 1 }])).toBe(1)
+  })
+
+  it('estado de partido: finalizado, programado, por programar y esperando rival', () => {
+    expect(matchState({ status: 'completed', entry_one_id: 'e1', entry_two_id: 'e2', reservation_id: null })).toBe('done')
+    expect(matchState({ status: 'scheduled', entry_one_id: 'e1', entry_two_id: 'e2', reservation_id: 'r' })).toBe('scheduled')
+    expect(matchState({ status: 'pending', entry_one_id: 'e1', entry_two_id: 'e2', reservation_id: null })).toBe('unscheduled')
+    expect(matchState({ status: 'pending', entry_one_id: 'e1', entry_two_id: null, reservation_id: null })).toBe('waiting')
   })
 })

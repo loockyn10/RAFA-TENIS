@@ -22,8 +22,8 @@ describe('LessonForm', () => {
     const rpc = vi.fn().mockResolvedValue({ error: null })
     const client = { from: vi.fn(), rpc } as never
     render(<LessonForm client={client} club={club} courts={courts} coaches={[coach]} initial={draft} onClose={vi.fn()} onSaved={vi.fn()} />)
-    fireEvent.click(screen.getByLabelText('Repetir semanalmente'))
-    fireEvent.change(screen.getByLabelText('Última fecha de la serie'), { target: { value: '2026-11-03' } })
+    fireEvent.click(screen.getByRole('switch', { name: /Repetir cada semana/ }))
+    fireEvent.change(screen.getByLabelText('Última fecha'), { target: { value: '2026-11-03' } })
     fireEvent.click(screen.getByRole('button', { name: 'Crear serie' }))
     await waitFor(() => expect(rpc).toHaveBeenCalledWith('create_weekly_tennis_lesson_series', expect.objectContaining({ p_occurrence_count: 4 })))
   })

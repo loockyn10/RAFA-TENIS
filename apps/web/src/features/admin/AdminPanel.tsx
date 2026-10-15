@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useAuth } from '../../auth/AuthProvider'
 import { AppFrame } from '../../auth/AppFrame'
-import { CourtList, type CourtPatch } from '../courts/CourtList'
+import { CourtsPanel, type CourtPatch } from '../courts/CourtList'
+import { SettingsPanel } from '../settings/SettingsPanel'
 import { ReservationCalendar, type CalendarFormRequest } from '../reservations/ReservationCalendar'
 import { PeoplePanel } from '../people/PeoplePanel'
 import { FinancePanel } from '../fees/FinancePanel'
@@ -117,7 +118,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
       .select('id, club_id, name, surface, active, display_order')
       .single()
     if (updateError) return { error: 'No se pudieron guardar los cambios. Intentá nuevamente.' }
-    setCourts((current) => current.map((item) => item.id === court.id ? data as Court : item))
+    setCourts((current) => current.map((item) => item.id === court.id ? data as Court : item).sort((first, second) => first.display_order - second.display_order || first.name.localeCompare(second.name, 'es')))
     return {}
   }
 
@@ -129,7 +130,7 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   }
 
   // Un rol sin permiso no debe quedar parado en una sección restringida (por ejemplo al cambiar de club).
-  const effectiveSection: AdminSection = !canManage && (section === 'fees' || section === 'playerAccess') ? 'home' : section
+  const effectiveSection: AdminSection = !canManage && (section === 'fees' || section === 'playerAccess' || section === 'settings') ? 'home' : section
 
   const changeSection = (nextSection: AdminSection) => {
     setSection(nextSection)
@@ -174,12 +175,13 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
       {effectiveSection === 'home' && <div className="rt"><AdminHome client={client} club={selectedClub} courts={courts} canManage={canManage} onNavigate={changeSection} onNewReservation={(request) => requestForm('reservation', request)} onNewBlock={(request) => requestForm('block', request)} /></div>}
       {effectiveSection === 'reservations' && <div className="rt"><ReservationCalendar client={client} club={selectedClub} courts={courts} formRequest={formRequest} onFormRequestHandled={() => setFormRequest(null)} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); changeSection('school') }} onOpenTournamentMatch={(reservationId) => { setRequestedTournamentReservationId(reservationId); changeSection('tournaments') }} onCreateLesson={(request) => { setLessonCreation(request); changeSection('school') }} /></div>}
       {effectiveSection === 'canteen' && <div className="rt"><CanteenPanel client={client} club={selectedClub} canManageCatalog={canManage} /></div>}
-      {effectiveSection === 'school' && <Legacy><SchoolPanel client={client} club={selectedClub} courts={courts} canManageCoaches={canManage} requestedLessonId={requestedLessonId} onRequestedLessonHandled={() => setRequestedLessonId(null)} requestedCreation={lessonCreation} onRequestedCreationHandled={() => setLessonCreation(null)} /></Legacy>}
-      {effectiveSection === 'tournaments' && <Legacy><TournamentPanel client={client} club={selectedClub} courts={courts} canManage={canManage} requestedReservationId={requestedTournamentReservationId} onRequestedReservationHandled={() => setRequestedTournamentReservationId(null)} /></Legacy>}
-      {effectiveSection === 'people' && <Legacy><PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} createRequest={personRequest} onCreateRequestHandled={() => setPersonRequest(0)} /></Legacy>}
-      {effectiveSection === 'fees' && canManage && <Legacy><FinancePanel client={client} club={selectedClub} canManage={canManage} /></Legacy>}
-      {effectiveSection === 'playerAccess' && canManage && <Legacy><PlayerAccessPanel client={client} club={selectedClub} /></Legacy>}
-      {effectiveSection === 'courts' && <Legacy><CourtList courts={courts} canManage={canManage} onSave={saveCourt} /></Legacy>}
+      {effectiveSection === 'school' && <div className="rt"><SchoolPanel client={client} club={selectedClub} courts={courts} canManageCoaches={canManage} requestedLessonId={requestedLessonId} onRequestedLessonHandled={() => setRequestedLessonId(null)} requestedCreation={lessonCreation} onRequestedCreationHandled={() => setLessonCreation(null)} /></div>}
+      {effectiveSection === 'tournaments' && <div className="rt"><TournamentPanel client={client} club={selectedClub} courts={courts} canManage={canManage} requestedReservationId={requestedTournamentReservationId} onRequestedReservationHandled={() => setRequestedTournamentReservationId(null)} /></div>}
+      {effectiveSection === 'people' && <div className="rt"><PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} createRequest={personRequest} onCreateRequestHandled={() => setPersonRequest(0)} onNavigate={changeSection} /></div>}
+      {effectiveSection === 'fees' && canManage && <div className="rt"><FinancePanel client={client} club={selectedClub} canManage={canManage} /></div>}
+      {effectiveSection === 'settings' && canManage && <div className="rt"><SettingsPanel client={client} club={selectedClub} courts={courts} onNavigate={changeSection} /></div>}
+      {effectiveSection === 'playerAccess' && canManage && <Legacy><PlayerAccessPanel client={client} club={selectedClub} onOpenSettings={() => changeSection('settings')} /></Legacy>}
+      {effectiveSection === 'courts' && <div className="rt"><CourtsPanel client={client} club={selectedClub} courts={courts} canManage={canManage} onSave={saveCourt} onReserve={(courtId) => requestForm('reservation', { courtId })} /></div>}
     </AdminShell>
   )
 }

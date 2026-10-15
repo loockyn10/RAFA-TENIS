@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Avatar, Button, Crest, Field, Icon, Modal, SelectInput, type IconName } from '../../design/ui'
+import { Avatar, Button, Crest, Field, Icon, IconButton, Modal, SelectInput, type IconName } from '../../design/ui'
 import { useScrolled } from '../../design/media'
 import type { Club, ClubRole } from '../../types/domain'
 import { roleLabel } from './roleLabel'
 
-export type AdminSection = 'home' | 'reservations' | 'canteen' | 'people' | 'fees' | 'school' | 'tournaments' | 'courts' | 'playerAccess'
+export type AdminSection = 'home' | 'reservations' | 'canteen' | 'people' | 'fees' | 'school' | 'tournaments' | 'courts' | 'settings' | 'playerAccess'
 
 type NavItem = { section: AdminSection; label: string; short?: string; icon: IconName; managersOnly?: boolean }
 const NAV_GROUPS: { group: string; items: NavItem[] }[] = [
@@ -21,6 +21,7 @@ const NAV_GROUPS: { group: string; items: NavItem[] }[] = [
   ] },
   { group: 'Configuración', items: [
     { section: 'courts', label: 'Canchas', icon: 'court' },
+    { section: 'settings', label: 'Configuración del club', short: 'Ajustes', icon: 'settings', managersOnly: true },
     { section: 'playerAccess', label: 'Portal de jugadores', short: 'Portal', icon: 'portal', managersOnly: true },
   ] },
 ]
@@ -122,6 +123,7 @@ export function AdminShell(props: AdminShellProps) {
           <div className="topbar-actions">
             <Button variant="secondary" icon="cart" onClick={() => go('canteen')} className="hide-mobile">Venta rápida</Button>
             <Button variant="accent" icon="plus" onClick={act(props.onNewReservation)} className="hide-mobile">Nueva reserva</Button>
+            {canManage && <IconButton icon="settings" label="Configuración del club" variant="on-dark" className={`show-mobile ${section === 'settings' ? 'is-current' : ''}`} onClick={() => go('settings')} />}
             <button type="button" className="topbar-avatar show-mobile" aria-label="Cuenta" aria-haspopup="dialog" onClick={() => setSheet('account')}>
               <Avatar name={props.userEmail || 'Cuenta'} size="sm" />
             </button>

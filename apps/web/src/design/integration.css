@@ -36,3 +36,12 @@
   .canteen-top .segmented button { gap: 4px; padding: 0 8px; font-size: var(--fs-sm); }
   .canteen-top .segmented button > .icon { display: none; }
 }
+
+/* Integración 02 · Jugadores: la lista real no trae saldo ni próximo turno por ficha (requeriría lecturas adicionales). */
+.people-table.is-lean .people-head span:first-child { grid-column: 2; }
+@media (min-width: 1024px) {
+  .people-table.is-lean .people-head, .people-table.is-lean .person-row { grid-template-columns: 40px minmax(200px, 1.6fr) minmax(160px, 1fr) 18px; }
+}
+
+/* Integración 02: separación entre el avatar y el nombre dentro de un chip (profesores). */
+.chip-avatar { display: inline-flex; align-items: center; margin-right: 8px; vertical-align: middle; }
