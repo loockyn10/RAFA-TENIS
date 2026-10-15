@@ -29,4 +29,12 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Bibliotecas estables en su propio archivo: se cachean aparte y no se vuelven a descargar con cada cambio de la aplicación.
+        manualChunks: { react: ['react', 'react-dom'], supabase: ['@supabase/supabase-js'] },
+      },
+    },
+  },
 })

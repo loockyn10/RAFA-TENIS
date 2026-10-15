@@ -1,27 +1,28 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useAuth } from '../../auth/AuthProvider'
-import { AppFrame } from '../../auth/AppFrame'
-import { CourtsPanel, type CourtPatch } from '../courts/CourtList'
-import { SettingsPanel } from '../settings/SettingsPanel'
-import { ReservationCalendar, type CalendarFormRequest } from '../reservations/ReservationCalendar'
-import { PeoplePanel } from '../people/PeoplePanel'
-import { FinancePanel } from '../fees/FinancePanel'
-import { SchoolPanel } from '../school/SchoolPanel'
-import { TournamentPanel } from '../tournaments/TournamentPanel'
-import { CanteenPanel } from '../canteen/CanteenPanel'
-import { PlayerAccessPanel } from '../player/PlayerAccessPanel'
-import { AdminHome, type HomeSlotRequest } from '../home/AdminHome'
+import { AuthLayout, AuthLoading, AuthNotice, SignOutButton } from '../../auth/AuthLayout'
 import { AdminShell, type AdminSection } from '../shell/AdminShell'
+import { SkeletonCards } from '../../design/ui'
+import type { CourtPatch } from '../courts/CourtList'
+import type { CalendarFormRequest } from '../reservations/ReservationCalendar'
+import type { HomeSlotRequest } from '../home/AdminHome'
 import { todayInTimezone } from '../reservations/reservationUtils'
 import type { Club, ClubMembership, ClubRole, Court } from '../../types/domain'
 
 type MembershipRow = { club_id: string; role: ClubRole }
 
-/** Contenedor transitorio de los módulos que todavía usan su interfaz anterior (ver docs/UI_INTEGRATION_MAP.md). */
-function Legacy({ children }: { children: ReactNode }) {
-  return <div className="legacy-zone legacy-scope">{children}</div>
-}
+// Cada módulo se descarga cuando se abre por primera vez: el primer pantallazo no carga la cantina, el fixture ni la escuela.
+const AdminHome = lazy(() => import('../home/AdminHome').then((module) => ({ default: module.AdminHome })))
+const ReservationCalendar = lazy(() => import('../reservations/ReservationCalendar').then((module) => ({ default: module.ReservationCalendar })))
+const CanteenPanel = lazy(() => import('../canteen/CanteenPanel').then((module) => ({ default: module.CanteenPanel })))
+const SchoolPanel = lazy(() => import('../school/SchoolPanel').then((module) => ({ default: module.SchoolPanel })))
+const TournamentPanel = lazy(() => import('../tournaments/TournamentPanel').then((module) => ({ default: module.TournamentPanel })))
+const PeoplePanel = lazy(() => import('../people/PeoplePanel').then((module) => ({ default: module.PeoplePanel })))
+const FinancePanel = lazy(() => import('../fees/FinancePanel').then((module) => ({ default: module.FinancePanel })))
+const SettingsPanel = lazy(() => import('../settings/SettingsPanel').then((module) => ({ default: module.SettingsPanel })))
+const PlayerAccessPanel = lazy(() => import('../player/PlayerAccessPanel').then((module) => ({ default: module.PlayerAccessPanel })))
+const CourtsPanel = lazy(() => import('../courts/CourtList').then((module) => ({ default: module.CourtsPanel })))
 
 export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPlayerPortal?: () => void }) {
   const { client, signOut } = useAuth()
@@ -149,9 +150,9 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
   }
   const requestPerson = () => { setPersonRequest((current) => current + 1); changeSection('people') }
 
-  if (status === 'loading') return <AppFrame><div className="screen-message" role="status">Cargando acceso administrativo…</div></AppFrame>
-  if (status === 'error') return <AppFrame><div className="screen-message error-message" role="alert">{error}</div></AppFrame>
-  if (memberships.length === 0 || !selectedClub) return <AppFrame><NoClubAccess onSignOut={() => void closeSession()} signingOut={isSigningOut} /></AppFrame>
+  if (status === 'loading') return <AuthLoading message="Cargando acceso administrativo…" />
+  if (status === 'error') return <AuthLayout><AuthNotice kicker="Administración" title="No pudimos cargar tu acceso" tone="error" action={<SignOutButton onSignOut={() => void closeSession()} busy={isSigningOut} />}><p>{error}</p></AuthNotice></AuthLayout>
+  if (memberships.length === 0 || !selectedClub) return <AuthLayout><AuthNotice kicker="Acceso restringido" title="No tenés acceso administrativo a ningún club." action={<SignOutButton onSignOut={() => void closeSession()} busy={isSigningOut} />}><p>Pedile a la persona responsable que verifique tu membresía administrativa.</p></AuthNotice></AuthLayout>
 
   return (
     <AdminShell
@@ -171,7 +172,8 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
       onNewLesson={requestLesson}
       onNewPerson={requestPerson}
     >
-      {error && <p className="legacy-scope form-error" role="alert">{error}</p>}
+      {error && <p className="inline-alert inline-alert-danger" role="alert">{error}</p>}
+      <Suspense fallback={<div className="rt" role="status" aria-label="Cargando sección"><SkeletonCards count={3} height={96} /></div>}>
       {effectiveSection === 'home' && <div className="rt"><AdminHome client={client} club={selectedClub} courts={courts} canManage={canManage} onNavigate={changeSection} onNewReservation={(request) => requestForm('reservation', request)} onNewBlock={(request) => requestForm('block', request)} /></div>}
       {effectiveSection === 'reservations' && <div className="rt"><ReservationCalendar client={client} club={selectedClub} courts={courts} formRequest={formRequest} onFormRequestHandled={() => setFormRequest(null)} onOpenLesson={(lessonId) => { setRequestedLessonId(lessonId); changeSection('school') }} onOpenTournamentMatch={(reservationId) => { setRequestedTournamentReservationId(reservationId); changeSection('tournaments') }} onCreateLesson={(request) => { setLessonCreation(request); changeSection('school') }} /></div>}
       {effectiveSection === 'canteen' && <div className="rt"><CanteenPanel client={client} club={selectedClub} canManageCatalog={canManage} /></div>}
@@ -180,12 +182,9 @@ export function AdminPanel({ user, onOpenPlayerPortal }: { user: User; onOpenPla
       {effectiveSection === 'people' && <div className="rt"><PeoplePanel client={client} club={selectedClub} canManageMemberships={canManage} createRequest={personRequest} onCreateRequestHandled={() => setPersonRequest(0)} onNavigate={changeSection} /></div>}
       {effectiveSection === 'fees' && canManage && <div className="rt"><FinancePanel client={client} club={selectedClub} canManage={canManage} /></div>}
       {effectiveSection === 'settings' && canManage && <div className="rt"><SettingsPanel client={client} club={selectedClub} courts={courts} onNavigate={changeSection} /></div>}
-      {effectiveSection === 'playerAccess' && canManage && <Legacy><PlayerAccessPanel client={client} club={selectedClub} onOpenSettings={() => changeSection('settings')} /></Legacy>}
+      {effectiveSection === 'playerAccess' && canManage && <div className="rt"><PlayerAccessPanel client={client} club={selectedClub} onOpenSettings={() => changeSection('settings')} /></div>}
       {effectiveSection === 'courts' && <div className="rt"><CourtsPanel client={client} club={selectedClub} courts={courts} canManage={canManage} onSave={saveCourt} onReserve={(courtId) => requestForm('reservation', { courtId })} /></div>}
+      </Suspense>
     </AdminShell>
   )
-}
-
-function NoClubAccess({ onSignOut, signingOut }: { onSignOut: () => void; signingOut: boolean }) {
-  return <section className="configuration-card"><p className="eyebrow">Acceso restringido</p><h2>No tenés acceso administrativo a ningún club.</h2><p className="intro">Pedile a la persona responsable que verifique tu membresía administrativa.</p><button className="secondary-button" type="button" onClick={onSignOut} disabled={signingOut}>{signingOut ? 'Cerrando…' : 'Cerrar sesión'}</button></section>
 }

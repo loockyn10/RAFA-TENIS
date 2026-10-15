@@ -1,4 +1,9 @@
-/* Base del design system, acotada a .rt para no alterar los módulos aún no integrados (.legacy-scope). */
+/* Base del design system. Los elementos se normalizan dentro de .rt; solo html/body tienen reglas globales. */
+/* Global mínimo: toda la aplicación vive dentro de .rt (Integración 03 retiró el CSS previo). */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { margin: 0; min-width: 320px; min-height: 100dvh; background: var(--bg-app); }
+
 .rt, .rt *, .rt *::before, .rt *::after { box-sizing: border-box; }
 .rt {
   margin: 0;

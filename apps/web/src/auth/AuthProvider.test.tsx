@@ -32,7 +32,7 @@ describe('AuthProvider', () => {
 
     render(<AuthProvider client={client}><AppContent /></AuthProvider>)
 
-    expect(await screen.findByRole('heading', { name: 'Canjeá tu invitación.' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Canjeá tu invitación' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Canchas' })).not.toBeInTheDocument()
   })
 })

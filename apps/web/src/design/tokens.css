@@ -1,7 +1,7 @@
 /*
  * Rafa Tenis — tokens de diseño (DESIGN-01)
  * Capa 1: paleta cruda. Capa 2: tokens semánticos (lo único que deberían usar los componentes).
- * Pensados para portarse tal cual a apps/web/src/styles.css cuando se apruebe el diseño.
+ * Copia de apps/design-preview (referencia visual).
  */
 :root {
   /* ── Paleta: verde club ───────────────────────── */
